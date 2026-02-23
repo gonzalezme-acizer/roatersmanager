@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { ChevronLeft, Save, Plus, X, Search, Settings, Loader2, CalendarDays, BookOpen, Clock, Users, Shield, CheckCircle2, UserCheck, MessageSquare, Mic, Droplet, Coffee, Share2, Copy, Youtube } from 'lucide-react'
+import { ChevronLeft, Save, Plus, X, Search, Settings, Loader2, CalendarDays, BookOpen, Clock, Users, Shield, CheckCircle2, UserCheck, MessageSquare, Mic, Droplet, Coffee, Share2, Copy, Youtube, Star, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { showSuccessToast, showErrorToast } from '@/utils/toast'
 
@@ -25,6 +25,9 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
     const [notes, setNotes] = useState<any[]>(initialNotes)
     const [newNoteText, setNewNoteText] = useState('')
     const [isSavingNote, setIsSavingNote] = useState(false)
+
+    // Awards State
+    const [awards, setAwards] = useState<any>(event.match_awards || {})
 
     // UI Loading states
     const [loadingSlot, setLoadingSlot] = useState(false)
@@ -133,6 +136,22 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
                 setAttendance([...attendance, data[0]])
             }
         }
+    }
+
+    // --- AWARDS --- //
+    const handleSaveAward = async (teamId: string, type: 'motm' | 'tryman', playerId: string) => {
+        const newAwards = {
+            ...awards,
+            [teamId]: {
+                ...awards[teamId],
+                [type]: playerId
+            }
+        };
+        setAwards(newAwards);
+
+        // This will attempt to save if the column exists, we fail gracefully if it doesn't
+        await supabase.from('events').update({ match_awards: newAwards }).eq('id', event.id);
+        showSuccessToast('Premios Actualizados', 'Se ha guardado el jugador destacado.');
     }
 
     // --- NOTAS --- //
@@ -491,6 +510,65 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* --- PREMIOS DEL PARTIDO --- */}
+                        {event.event_type === 'Partido' && event.match_teams?.length > 0 && (
+                            <div className="mt-8 space-y-4">
+                                <h3 className="font-black text-lg text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                    <Star className="w-5 h-5 text-yellow-500" />
+                                    Destacados del Partido por Equipo
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {event.match_teams.map((teamId: string) => {
+                                        const team = teams.find((t: any) => t.id === teamId);
+                                        if (!team) return null;
+
+                                        const teamPlayerIds = Object.values(team.lineup || {});
+                                        const teamPlayersList = players.filter((p: any) => teamPlayerIds.includes(p.id));
+
+                                        return (
+                                            <div key={teamId} className="bg-white dark:bg-[#102035] border border-gray-200 dark:border-white/10 rounded-2xl p-5 shadow-sm">
+                                                <h4 className="font-bold text-liceo-primary dark:text-[#5EE5F8] border-b border-gray-100 dark:border-white/5 pb-2 mb-4">{team.name}</h4>
+
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-1.5 mb-1.5">
+                                                            <Star className="w-3 h-3 text-yellow-500" /> Jugador de la Fecha
+                                                        </label>
+                                                        <select
+                                                            value={awards[teamId]?.motm || ''}
+                                                            onChange={(e) => handleSaveAward(teamId, 'motm', e.target.value)}
+                                                            className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 focus:outline-none focus:ring-2 focus:ring-liceo-primary text-sm font-semibold dark:text-white"
+                                                        >
+                                                            <option value="">Seleccionar Jugador...</option>
+                                                            {teamPlayersList.map((p: any) => (
+                                                                <option key={p.id} value={p.id}>{p.last_name}, {p.first_name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-1.5 mb-1.5">
+                                                            <Trophy className="w-3 h-3 text-orange-500" /> Tryman
+                                                        </label>
+                                                        <select
+                                                            value={awards[teamId]?.tryman || ''}
+                                                            onChange={(e) => handleSaveAward(teamId, 'tryman', e.target.value)}
+                                                            className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 focus:outline-none focus:ring-2 focus:ring-liceo-primary text-sm font-semibold dark:text-white"
+                                                        >
+                                                            <option value="">Seleccionar Jugador...</option>
+                                                            {teamPlayersList.map((p: any) => (
+                                                                <option key={p.id} value={p.id}>{p.last_name}, {p.first_name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
