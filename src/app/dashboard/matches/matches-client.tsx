@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Database, CalendarDays, BookOpen, AlertCircle, X, Loader2, ArrowRight, Shield, Clock, ExternalLink, Edit2, Trash2, MapPin, Globe, Trophy } from 'lucide-react'
+import { Plus, Database, CalendarDays, BookOpen, AlertCircle, X, Loader2, ArrowRight, Shield, Clock, ExternalLink, Edit2, Trash2, MapPin, Globe, Trophy, LayoutGrid, List } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { showSuccessToast, showErrorToast } from '@/utils/toast'
 import { useLang } from '@/components/lang-provider'
@@ -12,6 +12,8 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
     const [events, setEvents] = useState(initialEvents)
     const [clubs, setClubs] = useState(initialClubs)
     const [viewMode, setViewMode] = useState<'events' | 'clubs'>('events')
+    const [eventsLayout, setEventsLayout] = useState<'grid' | 'list'>('grid')
+    const [clubsLayout, setClubsLayout] = useState<'grid' | 'list'>('grid')
     const { t } = useLang()
 
     // Modals
@@ -167,13 +169,24 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                         <p className="text-gray-500 dark:text-gray-400 font-medium">{t.matches.subtitle}</p>
                     </div>
 
-                    <div className="flex bg-gray-100 dark:bg-white/5 p-1.5 rounded-2xl shadow-inner border border-gray-200 dark:border-white/10 w-full md:w-auto">
-                        <button onClick={() => setViewMode('events')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${viewMode === 'events' ? 'bg-white dark:bg-[#111f38] text-liceo-primary dark:text-[#5EE5F8] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
-                            <CalendarDays className="w-4 h-4" /> {t.matches.calendar}
-                        </button>
-                        <button onClick={() => setViewMode('clubs')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${viewMode === 'clubs' ? 'bg-white dark:bg-[#111f38] text-liceo-primary dark:text-[#5EE5F8] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
-                            <Shield className="w-4 h-4" /> {t.matches.clubs}
-                        </button>
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                        <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl shadow-inner border border-gray-200 dark:border-white/10 w-full sm:w-auto self-start sm:self-auto">
+                            <button onClick={() => viewMode === 'events' ? setEventsLayout('grid') : setClubsLayout('grid')} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${(viewMode === 'events' ? eventsLayout : clubsLayout) === 'grid' ? 'bg-white dark:bg-[#0B1526] text-liceo-primary dark:text-[#5EE5F8] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+                                <LayoutGrid className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => viewMode === 'events' ? setEventsLayout('list') : setClubsLayout('list')} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${(viewMode === 'events' ? eventsLayout : clubsLayout) === 'list' ? 'bg-white dark:bg-[#0B1526] text-liceo-primary dark:text-[#5EE5F8] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+                                <List className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="flex bg-gray-100 dark:bg-white/5 p-1.5 rounded-2xl shadow-inner border border-gray-200 dark:border-white/10 w-full md:w-auto">
+                            <button onClick={() => setViewMode('events')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${viewMode === 'events' ? 'bg-white dark:bg-[#111f38] text-liceo-primary dark:text-[#5EE5F8] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+                                <CalendarDays className="w-4 h-4" /> {t.matches.calendar}
+                            </button>
+                            <button onClick={() => setViewMode('clubs')} className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${viewMode === 'clubs' ? 'bg-white dark:bg-[#111f38] text-liceo-primary dark:text-[#5EE5F8] shadow-sm' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+                                <Shield className="w-4 h-4" /> {t.matches.clubs}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex gap-3">
@@ -343,43 +356,82 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                 {/* VIEWS */}
                 {
                     viewMode === 'events' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className={eventsLayout === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
                             {events.map((ev: any) => (
-                                <div key={ev.id} className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all flex flex-col relative group">
-                                    <div className="flex justify-between items-start mb-4">
-                                        {ev.clubs?.logo_url ? (
-                                            <img src={ev.clubs.logo_url} alt="Logo" className="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-gray-100 dark:border-white/10" />
-                                        ) : (
-                                            <div className="w-12 h-12 bg-gray-100 dark:bg-white/5 flex items-center justify-center rounded-lg border border-gray-200 dark:border-white/10 text-gray-400">
-                                                <Shield className="w-6 h-6" />
+                                eventsLayout === 'grid' ? (
+                                    <div key={ev.id} className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all flex flex-col relative group">
+                                        <div className="flex justify-between items-start mb-4">
+                                            {ev.clubs?.logo_url ? (
+                                                <img src={ev.clubs.logo_url} alt="Logo" className="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-gray-100 dark:border-white/10" />
+                                            ) : (
+                                                <div className="w-12 h-12 bg-gray-100 dark:bg-white/5 flex items-center justify-center rounded-lg border border-gray-200 dark:border-white/10 text-gray-400">
+                                                    <Shield className="w-6 h-6" />
+                                                </div>
+                                            )}
+                                            <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
+                                                {ev.status}
                                             </div>
-                                        )}
-                                        <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
-                                            {ev.status}
+                                        </div>
+                                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{ev.title}</h3>
+
+                                        <div className="space-y-2 mb-4">
+                                            <p suppressHydrationWarning className="text-sm text-liceo-primary dark:text-[#5EE5F8] font-bold flex items-center gap-2">
+                                                <CalendarDays className="w-4 h-4" />
+                                                {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('es-AR')}
+                                            </p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2 font-medium">
+                                                <span className="text-orange-500 font-bold">Citación: {ev.call_time?.slice(0, 5) || '--:--'}</span> •
+                                                <span className="text-green-500 font-bold">KO: {ev.event_time?.slice(0, 5)}hs</span>
+                                            </p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                                <MapPin className="w-4 h-4" /> {ev.location || ev.clubs?.address || 'Sede sin cargar'}
+                                            </p>
+                                        </div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-2">{ev.objectives}</p>
+
+                                        <Link href={`/dashboard/training/${ev.id}`} className="mt-auto flex items-center justify-center gap-2 bg-gray-50 dark:bg-white/5 hover:bg-liceo-primary hover:text-white dark:hover:bg-liceo-gold dark:hover:text-[#0B1526] text-liceo-primary dark:text-liceo-gold py-3 rounded-xl font-bold transition-colors">
+                                            {t.matches.openControl}
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div key={ev.id} className="bg-white dark:bg-[#0B1526] border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex-1 flex flex-col md:flex-row md:items-center gap-4">
+                                            <div className="w-12 h-12 shrink-0 bg-white dark:bg-white/5 rounded-2xl flex items-center justify-center border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden">
+                                                {ev.clubs?.logo_url ? (
+                                                    <img src={ev.clubs.logo_url} alt="Logo" className="w-full h-full object-contain p-1" />
+                                                ) : (
+                                                    <Shield className="w-6 h-6 text-gray-300 dark:text-white/20" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">
+                                                        {ev.status}
+                                                    </div>
+                                                    <p suppressHydrationWarning className="text-xs text-liceo-primary dark:text-[#5EE5F8] font-bold flex items-center gap-1.5">
+                                                        <CalendarDays className="w-3 h-3" />
+                                                        {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('es-AR')}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-bold flex items-center gap-1.5 hidden md:flex">
+                                                        <span className="text-orange-500">Cit: {ev.call_time?.slice(0, 5) || '--:--'}</span> • <span className="text-green-500">KO: {ev.event_time?.slice(0, 5)}hs</span>
+                                                    </p>
+                                                </div>
+                                                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">{ev.title}</h3>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                                    <MapPin className="w-3 h-3" /> {ev.location || ev.clubs?.address || 'Sede sin cargar'}
+                                                    <span className="md:hidden"> • <span className="text-orange-500">Cit: {ev.call_time?.slice(0, 5) || '--'}</span> • <span className="text-green-500">KO: {ev.event_time?.slice(0, 5)}hs</span></span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0">
+                                            <Link href={`/dashboard/training/${ev.id}`} className="flex items-center justify-center gap-2 bg-gray-50 dark:bg-white/5 hover:bg-liceo-primary hover:text-white dark:hover:bg-liceo-gold dark:hover:text-[#0B1526] text-liceo-primary dark:text-liceo-gold px-6 py-2.5 rounded-xl font-bold transition-colors w-full md:w-auto">
+                                                {t.matches.openControl}
+                                                <ArrowRight className="w-4 h-4" />
+                                            </Link>
                                         </div>
                                     </div>
-                                    <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{ev.title}</h3>
-
-                                    <div className="space-y-2 mb-4">
-                                        <p suppressHydrationWarning className="text-sm text-liceo-primary dark:text-[#5EE5F8] font-bold flex items-center gap-2">
-                                            <CalendarDays className="w-4 h-4" />
-                                            {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('es-AR')}
-                                        </p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2 font-medium">
-                                            <span className="text-orange-500 font-bold">Citación: {ev.call_time?.slice(0, 5) || '--:--'}</span> •
-                                            <span className="text-green-500 font-bold">KO: {ev.event_time?.slice(0, 5)}hs</span>
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                            <MapPin className="w-4 h-4" /> {ev.location || ev.clubs?.address || 'Sede sin cargar'}
-                                        </p>
-                                    </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 line-clamp-2">{ev.objectives}</p>
-
-                                    <Link href={`/dashboard/training/${ev.id}`} className="mt-auto flex items-center justify-center gap-2 bg-gray-50 dark:bg-white/5 hover:bg-liceo-primary hover:text-white dark:hover:bg-liceo-gold dark:hover:text-[#0B1526] text-liceo-primary dark:text-liceo-gold py-3 rounded-xl font-bold transition-colors">
-                                        {t.matches.openControl}
-                                        <ArrowRight className="w-4 h-4" />
-                                    </Link>
-                                </div>
+                                )
                             ))}
                             {events.length === 0 && (
                                 <div className="col-span-full py-16 text-center">
@@ -399,29 +451,53 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
 
                 {
                     viewMode === 'clubs' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className={clubsLayout === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
                             {clubs.map((club: any) => (
-                                <div key={club.id} className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all relative group flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="w-16 h-16 bg-white dark:bg-white/5 rounded-2xl flex items-center justify-center border border-gray-200 dark:border-white/10 overflow-hidden shadow-sm">
+                                clubsLayout === 'grid' ? (
+                                    <div key={club.id} className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all relative group flex flex-col justify-between">
+                                        <div>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="w-16 h-16 bg-white dark:bg-white/5 rounded-2xl flex items-center justify-center border border-gray-200 dark:border-white/10 overflow-hidden shadow-sm">
+                                                    {club.logo_url ? (
+                                                        <img src={club.logo_url} alt={club.name} className="w-full h-full object-contain p-2" />
+                                                    ) : (
+                                                        <Shield className="w-8 h-8 text-gray-300 dark:text-white/20" />
+                                                    )}
+                                                </div>
+                                                <button onClick={() => openEditClub(club)} className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-liceo-primary bg-gray-50 dark:bg-white/5 rounded-full">
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{club.name}</h3>
+                                            <div className="space-y-1 mb-6">
+                                                {club.address && <p className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2"><MapPin className="w-4 h-4" /> {club.address}</p>}
+                                                {club.website_url && <a href={club.website_url} target="_blank" className="text-sm font-medium text-blue-500 hover:underline flex items-center gap-2"><Globe className="w-4 h-4" /> Sitio Web</a>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div key={club.id} className="bg-white dark:bg-[#0B1526] border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 group">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 shrink-0 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden">
                                                 {club.logo_url ? (
                                                     <img src={club.logo_url} alt={club.name} className="w-full h-full object-contain p-2" />
                                                 ) : (
-                                                    <Shield className="w-8 h-8 text-gray-300 dark:text-white/20" />
+                                                    <Shield className="w-6 h-6 text-gray-300 dark:text-white/20" />
                                                 )}
                                             </div>
-                                            <button onClick={() => openEditClub(club)} className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-liceo-primary bg-gray-50 dark:bg-white/5 rounded-full">
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
+                                            <div>
+                                                <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1 group-hover:text-liceo-primary transition-colors">{club.name}</h3>
+                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                                    {club.address && <p className="text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {club.address}</p>}
+                                                    {club.website_url && <a href={club.website_url} target="_blank" className="text-xs font-medium text-blue-500 hover:underline flex items-center gap-1.5"><Globe className="w-3 h-3" /> Sitio Web</a>}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{club.name}</h3>
-                                        <div className="space-y-1 mb-6">
-                                            {club.address && <p className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2"><MapPin className="w-4 h-4" /> {club.address}</p>}
-                                            {club.website_url && <a href={club.website_url} target="_blank" className="text-sm font-medium text-blue-500 hover:underline flex items-center gap-2"><Globe className="w-4 h-4" /> Sitio Web</a>}
-                                        </div>
+                                        <button onClick={() => openEditClub(club)} className="p-3 text-gray-400 hover:text-liceo-primary hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all self-end sm:self-auto sm:opacity-0 group-hover:opacity-100">
+                                            <Edit2 className="w-5 h-5" />
+                                        </button>
                                     </div>
-                                </div>
+                                )
                             ))}
                         </div>
                     )
