@@ -18,7 +18,8 @@ export default async function DashboardPage() {
         const sortedSkills = p.skills?.sort((a: any, b: any) => new Date(b.date_logged || 0).getTime() - new Date(a.date_logged || 0).getTime())
         return {
             ...p,
-            skills: sortedSkills?.[0] || null
+            skills: sortedSkills?.[0] || null,
+            allSkills: sortedSkills || []
         }
     })
 

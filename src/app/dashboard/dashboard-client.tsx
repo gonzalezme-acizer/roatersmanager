@@ -92,6 +92,48 @@ export default function DashboardClient({ players, events, attendance }: { playe
         'scrum', 'attack', 'defense', 'mentality', 'kicking', 'duel'
     ]
 
+    const technicalGrowth = useMemo(() => {
+        let currentTotalScore = 0;
+        let pastTotalScore = 0;
+        let count = 0;
+
+        const maxScore = SKILL_KEYS.length * 5;
+
+        // Sólo contar jugadores activos que tienen evaluaciones
+        activePlayers.forEach(p => {
+            const history = p.allSkills || [];
+            if (history.length > 0) {
+                // Última evaluación (la actual)
+                const currSkill = history[0];
+                let sumCurr = 0;
+                SKILL_KEYS.forEach(k => sumCurr += (currSkill[k] || 1));
+                currentTotalScore += Math.round((sumCurr / maxScore) * 100);
+
+                // Evaluación anterior (si no tiene, comparamos con la misma actual o podemos usar la suya misma como baseline => crecimiento 0%)
+                const pastSkill = history.length > 1 ? history[1] : history[0];
+                let sumPast = 0;
+                SKILL_KEYS.forEach(k => sumPast += (pastSkill[k] || 1));
+                pastTotalScore += Math.round((sumPast / maxScore) * 100);
+
+                count++;
+            }
+        });
+
+        if (count === 0) return { current: 0, past: 0, diff: 0, label: '+0 Pts' };
+
+        const currentAvg = Math.round(currentTotalScore / count);
+        const pastAvg = Math.round(pastTotalScore / count);
+        const diff = currentAvg - pastAvg;
+
+        const sign = diff > 0 ? '+' : '';
+        return {
+            current: currentAvg,
+            past: pastAvg,
+            diff,
+            label: `${sign}${diff} Pts`
+        };
+    }, [activePlayers])
+
     const keyPlayers = useMemo(() => {
         const evaluated = activePlayers.filter(p => p.skills)
         const withScores = evaluated.map(p => {
@@ -248,10 +290,15 @@ export default function DashboardClient({ players, events, attendance }: { playe
                         </div>
                         <div className="bg-gradient-to-br from-liceo-primary to-[#001f3e] text-white rounded-3xl p-6 shadow-lg border border-white/10 hover:-translate-y-1 transition-transform relative overflow-hidden cursor-pointer group flex flex-col justify-between">
                             <TrendingUp className="w-24 h-24 absolute -bottom-4 -right-4 text-white/5 group-hover:text-white/10 transition-colors" />
-                            <h3 className="text-sm font-semibold opacity-80 uppercase tracking-widest mb-1 relative z-10">Crecimiento</h3>
+                            <h3 className="text-sm font-semibold opacity-80 uppercase tracking-widest mb-1 relative z-10">Crecimiento Técnico</h3>
                             <div className="relative z-10">
-                                <p className="text-3xl font-bold">+18%</p>
-                                <p className="text-xs opacity-60 mt-1">Comparado con el mes asado</p>
+                                <p className="text-3xl font-bold flex items-center gap-2">
+                                    {technicalGrowth.current} OVR
+                                    <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${technicalGrowth.diff >= 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}`}>
+                                        {technicalGrowth.label}
+                                    </span>
+                                </p>
+                                <p className="text-[10px] md:text-xs opacity-60 mt-1 font-medium pb-1 md:pb-0">OVR gral. del plantel vs nivel anterior</p>
                             </div>
                         </div>
                     </div>
