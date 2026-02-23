@@ -1,0 +1,1 @@
+ALTER TABLE public.event_plan_slots ADD COLUMN IF NOT EXISTS teams_level_1 jsonb DEFAULT '[]'::jsonb; ALTER TABLE public.event_plan_slots ADD COLUMN IF NOT EXISTS teams_level_2 jsonb DEFAULT '[]'::jsonb;
