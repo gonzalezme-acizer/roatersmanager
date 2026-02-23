@@ -12,7 +12,8 @@ import {
     Bell,
     LogOut,
     UserCircle,
-    Globe
+    Globe,
+    Shield
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { LangProvider, useLang } from '@/components/lang-provider'
@@ -89,7 +90,7 @@ function DashboardHeader() {
                 </button>
 
                 {/* Profile Mobile/Desktop */}
-                <Link href="/dashboard/profile" className="hidden sm:flex text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-gray-100 dark:bg-[#172540] p-2 md:p-2.5 rounded-xl border border-gray-200 dark:border-white/5">
+                <Link href="/dashboard/profile" className="flex text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-gray-100 dark:bg-[#172540] p-2 md:p-2.5 rounded-xl border border-gray-200 dark:border-white/5">
                     <UserCircle className="w-4 h-4 md:w-5 md:h-5" />
                 </Link>
 
@@ -109,34 +110,23 @@ function DashboardBottomNav() {
     const navItems = [
         { name: t.nav.dashboard, href: '/dashboard', icon: LayoutDashboard },
         { name: t.nav.roster, href: '/dashboard/players', icon: Users },
-        { name: t.nav.teams, href: '/dashboard/teams', icon: Globe },
-        { name: t.nav.add, href: '/dashboard/add', icon: Plus, isPrimary: true },
-        { name: t.nav.training, href: '/dashboard/training', icon: Dumbbell }
+        { name: t.nav.teams, href: '/dashboard/teams', icon: Shield },
+        { name: t.nav.training, href: '/dashboard/training', icon: Dumbbell },
+        { name: t.nav.matches, href: '/dashboard/matches', icon: Trophy }
     ]
 
     return (
-        <div className="lg:hidden fixed bottom-0 w-full bg-white dark:bg-[#0B1526] border-t border-gray-200 dark:border-white/10 px-6 py-2 pb-safe flex justify-between items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <div className="lg:hidden fixed bottom-0 w-full bg-white dark:bg-[#0B1526] border-t border-gray-200 dark:border-white/10 flex justify-between items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)] pb-safe">
             {navItems.map((item) => {
                 const isActive = pathname === item.href
-
-                if (item.isPrimary) {
-                    return (
-                        <div key={item.name} className="relative -top-6">
-                            <button className="w-14 h-14 bg-liceo-primary dark:bg-liceo-gold text-white dark:text-[#0B1526] hover:bg-liceo-primary/90 dark:hover:bg-yellow-400 rounded-full flex items-center justify-center shadow-lg dark:shadow-[0_4px_20px_rgba(255,217,0,0.4)] transition-transform active:scale-95 border-4 border-white dark:border-[#0B1526]">
-                                <item.icon className="w-7 h-7" />
-                            </button>
-                        </div>
-                    )
-                }
-
                 return (
                     <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex flex-col items-center gap-1 p-2 ${isActive ? 'text-liceo-primary dark:text-liceo-gold' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'} transition-colors`}
+                        className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 ${isActive ? 'text-liceo-primary dark:text-liceo-gold' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'} transition-colors`}
                     >
-                        <item.icon className="w-6 h-6" />
-                        <span className="text-[10px] sm:text-xs font-semibold uppercase">{item.name}</span>
+                        <item.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <span className="text-[9px] sm:text-[10px] font-semibold uppercase flex-shrink-0 text-center">{item.name}</span>
                     </Link>
                 )
             })}
