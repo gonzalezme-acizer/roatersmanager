@@ -389,13 +389,15 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                                 return eventsLayout === 'grid' ? (
                                     <div key={ev.id} className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all flex flex-col relative group">
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className="flex h-12 w-28 bg-white dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10 items-center justify-center p-1 gap-1">
+                                            <div className="flex h-12 w-32 bg-white dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10 items-center justify-center p-1 gap-1">
+                                                <img src="/logo-cglnm-liceo-naval.png" alt="Liceo Naval" className="object-contain h-full flex-1 min-w-0 max-w-full" />
+                                                <span className="text-gray-300 dark:text-gray-600 text-[10px] font-black italic -mx-0.5 mt-0.5">vs</span>
                                                 {hasLogos ? (
                                                     opponents.filter((c: any) => c?.logo_url).map((c: any, idx: number) => (
                                                         <img key={idx} src={c.logo_url} alt="Logo" className="object-contain h-full flex-1 min-w-0 max-w-full" />
                                                     ))
                                                 ) : (
-                                                    <Shield className="w-6 h-6 text-gray-300 dark:text-white/20" />
+                                                    <Shield className="w-6 h-6 text-gray-300 dark:text-white/20 flex-1" />
                                                 )}
                                             </div>
                                             <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
@@ -432,13 +434,15 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                                 ) : (
                                     <div key={ev.id} className="bg-white dark:bg-[#0B1526] border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
                                         <div className="flex-1 flex flex-col md:flex-row md:items-center gap-4">
-                                            <div className="w-24 h-12 shrink-0 flex items-center justify-center gap-1 bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden p-1">
+                                            <div className="w-32 h-12 shrink-0 flex items-center justify-center gap-1 bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden p-1">
+                                                <img src="/logo-cglnm-liceo-naval.png" alt="Liceo Naval" className="object-contain h-full flex-1 min-w-0 max-w-full" />
+                                                <span className="text-gray-300 dark:text-gray-600 text-[10px] font-black italic -mx-0.5 mt-0.5">vs</span>
                                                 {hasLogos ? (
                                                     opponents.filter((c: any) => c?.logo_url).map((c: any, idx: number) => (
                                                         <img key={idx} src={c.logo_url} alt="Logo" className="object-contain h-full flex-1 min-w-0 max-w-full" />
                                                     ))
                                                 ) : (
-                                                    <Shield className="w-6 h-6 text-gray-300 dark:text-white/20" />
+                                                    <Shield className="w-6 h-6 text-gray-300 dark:text-white/20 flex-1" />
                                                 )}
                                             </div>
                                             <div>
