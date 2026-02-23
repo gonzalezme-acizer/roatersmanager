@@ -9,7 +9,7 @@ import { showSuccessToast, showErrorToast } from '@/utils/toast'
 export default function EventDetailClient({ event, drills, initialSlots, initialAttendance, initialNotes, players, coaches, teams, currentUser }: any) {
     const supabase = createClient()
 
-    const [activeTab, setActiveTab] = useState<'plan' | 'attendance' | 'notes'>('plan')
+    const [activeTab, setActiveTab] = useState<'plan' | 'attendance' | 'notes'>(event.event_type === 'Partido' ? 'attendance' : 'plan')
 
     const [slots, setSlots] = useState<any[]>(initialSlots)
     const [isAddingSlot, setIsAddingSlot] = useState(false)
@@ -262,6 +262,19 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
         setIsSharing(true)
     }
 
+    const filteredPlayers = players.filter((p: any) => {
+        if (event.event_type !== 'Partido' || !event.match_teams || event.match_teams.length === 0) {
+            return true;
+        }
+
+        const isCalled = event.match_teams.some((teamId: string) => {
+            const team = teams.find((t: any) => t.id === teamId);
+            if (!team || !team.lineup) return false;
+            return Object.values(team.lineup).includes(p.id);
+        });
+        return isCalled;
+    });
+
     return (
         <div className="min-h-full bg-gray-50 dark:bg-[#0B1526] text-gray-900 dark:text-white flex flex-col font-sans">
             {/* Header */}
@@ -290,9 +303,11 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
 
             {/* Tabs */}
             <div className="flex bg-white dark:bg-[#0A1628] border-b border-gray-200 dark:border-white/5 px-6">
-                <button onClick={() => setActiveTab('plan')} className={`px-6 py-4 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'plan' ? 'border-liceo-primary text-liceo-primary dark:border-[#5EE5F8] dark:text-[#5EE5F8]' : 'border-transparent text-gray-500 hover:text-gray-900 border-b-transparent dark:text-gray-400 dark:hover:text-white'}`}>
-                    <BookOpen className="w-4 h-4" /> Planificación
-                </button>
+                {event.event_type !== 'Partido' && (
+                    <button onClick={() => setActiveTab('plan')} className={`px-6 py-4 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'plan' ? 'border-liceo-primary text-liceo-primary dark:border-[#5EE5F8] dark:text-[#5EE5F8]' : 'border-transparent text-gray-500 hover:text-gray-900 border-b-transparent dark:text-gray-400 dark:hover:text-white'}`}>
+                        <BookOpen className="w-4 h-4" /> Planificación
+                    </button>
+                )}
                 <button onClick={() => setActiveTab('attendance')} className={`px-6 py-4 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'attendance' ? 'border-liceo-primary text-liceo-primary dark:border-[#5EE5F8] dark:text-[#5EE5F8]' : 'border-transparent text-gray-500 hover:text-gray-900 border-b-transparent dark:text-gray-400 dark:hover:text-white'}`}>
                     <UserCheck className="w-4 h-4" /> Asistencia y Evaluaciones
                 </button>
@@ -422,8 +437,8 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
                 {activeTab === 'attendance' && (
                     <div className="space-y-6">
                         <div className="bg-white dark:bg-white/5 p-4 rounded-2xl border border-gray-200 dark:border-white/5 text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center justify-between">
-                            <span>Lista Oficial de Plantel Activo</span>
-                            <span className="text-xs bg-gray-100 dark:bg-black/50 px-3 py-1 rounded-full">{players.length} Jugadores Totales</span>
+                            <span>{event.event_type === 'Partido' ? 'Jugadores Convocados' : 'Lista Oficial de Plantel Activo'}</span>
+                            <span className="text-xs bg-gray-100 dark:bg-black/50 px-3 py-1 rounded-full">{filteredPlayers.length} Jugadores</span>
                         </div>
 
                         <div className="bg-white dark:bg-[#102035] border border-gray-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm">
@@ -436,7 +451,7 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                                    {players.map((p: any) => {
+                                    {filteredPlayers.map((p: any) => {
                                         const record = attendance.find(a => a.player_id === p.id)
                                         const currentStatus = record?.status || 'Pendiente'
 
