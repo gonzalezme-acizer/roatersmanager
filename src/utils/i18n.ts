@@ -10,7 +10,8 @@ export const dicts = {
             logout: "Salir",
             system: "Sistema de Gestión",
             theme: "Tema",
-            profile: "Perfil / Cuenta"
+            profile: "Perfil / Cuenta",
+            billboard: "CARTELERA"
         },
         profilePage: {
             title: "Mi Perfil / Staff",
@@ -201,7 +202,8 @@ export const dicts = {
             logout: "Logout",
             system: "Squad Management System",
             theme: "Theme",
-            profile: "Account Profile"
+            profile: "Account Profile",
+            billboard: "BILLBOARD"
         },
         profilePage: {
             title: "My Profile / Staff",

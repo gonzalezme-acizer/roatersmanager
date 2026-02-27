@@ -13,7 +13,8 @@ import {
     LogOut,
     UserCircle,
     Globe,
-    Shield
+    Shield,
+    Megaphone
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { LangProvider, useLang } from '@/components/lang-provider'
@@ -64,6 +65,7 @@ function DashboardHeader() {
                 <Link href="/dashboard/teams" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-bold pb-1 transition-colors">{t.nav.teams}</Link>
                 <Link href="/dashboard/training" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-bold pb-1 transition-colors">{t.nav.training}</Link>
                 <Link href="/dashboard/matches" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-bold pb-1 transition-colors">{t.nav.matches}</Link>
+                <Link href="/dashboard/billboard" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-bold pb-1 transition-colors">{t.nav.billboard}</Link>
             </nav>
 
             {/* Right Box: Actions */}
@@ -112,7 +114,8 @@ function DashboardBottomNav() {
         { name: t.nav.roster, href: '/dashboard/players', icon: Users },
         { name: t.nav.teams, href: '/dashboard/teams', icon: Shield },
         { name: t.nav.training, href: '/dashboard/training', icon: Dumbbell },
-        { name: t.nav.matches, href: '/dashboard/matches', icon: Trophy }
+        { name: t.nav.matches, href: '/dashboard/matches', icon: Trophy },
+        { name: t.nav.billboard, href: '/dashboard/billboard', icon: Megaphone }
     ]
 
     return (
