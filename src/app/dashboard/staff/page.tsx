@@ -12,9 +12,13 @@ export default async function DashboardPage() {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role, is_parent, is_active')
+        .select('role, is_parent, is_active, force_password_change')
         .eq('id', user.id)
         .single()
+
+    if (profile?.force_password_change) {
+        redirect('/dashboard/profile')
+    }
 
     // Redirigir si es padre y no tiene rol de staff
     if (profile?.is_parent && profile?.role !== 'Administrador' && profile?.role !== 'Entrenador' && profile?.role !== 'Admin' && profile?.role !== 'Manager') {

@@ -1,14 +1,23 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useEffect } from 'react'
 import { login } from '../actions'
 import { signInWithGoogle } from '../social-auth'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Users, ShieldCheck } from 'lucide-react'
+import { Users, ShieldCheck, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
     const [entryPoint, setEntryPoint] = useState<'staff' | 'parent'>('staff')
+    const [showPassword, setShowPassword] = useState(false)
+
+    // Auto-hide password after 3 seconds
+    useEffect(() => {
+        if (showPassword) {
+            const timer = setTimeout(() => setShowPassword(false), 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [showPassword])
 
     const [state, formAction, pending] = useActionState(
         async (prevState: any, formData: FormData) => {
@@ -91,15 +100,23 @@ export default function LoginPage() {
                             placeholder="tu@email.com"
                         />
                     </div>
-                    <div>
+                    <div className="relative">
                         <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest opacity-60">Contraseña</label>
                         <input
                             name="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             required
-                            className="w-full px-4 py-3 bg-[#0B1526] border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-liceo-gold dark:focus:ring-[#5EE5F8] focus:border-transparent outline-none transition-all placeholder:text-gray-600 font-medium text-sm"
+                            className="w-full px-4 py-3 bg-[#0B1526] border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-liceo-gold dark:focus:ring-[#5EE5F8] focus:border-transparent outline-none transition-all placeholder:text-gray-600 font-medium text-sm pr-12"
                             placeholder="••••••••"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-[32px] p-1 text-gray-400 hover:text-white transition-colors"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
                     </div>
                     <button
                         type="submit"

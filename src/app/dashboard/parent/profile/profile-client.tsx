@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { showSuccessToast, showErrorToast } from '@/utils/toast'
-import { Key, Save, Loader2, User, Phone, Mail, ShieldAlert } from 'lucide-react'
+import { Key, Save, Loader2, User, Phone, Mail, ShieldAlert, Eye, EyeOff } from 'lucide-react'
 import { updatePasswordAction } from './actions'
 
 interface ParentProfileClientProps {
@@ -28,6 +28,23 @@ export default function ParentProfileClient({ profile, user }: ParentProfileClie
     })
     const [isSavingProfile, setIsSavingProfile] = useState(false)
     const [isSavingPass, setIsSavingPass] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+    // Auto-hide passwords after 3 seconds
+    useEffect(() => {
+        if (showPassword) {
+            const timer = setTimeout(() => setShowPassword(false), 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [showPassword])
+
+    useEffect(() => {
+        if (showConfirmPassword) {
+            const timer = setTimeout(() => setShowConfirmPassword(false), 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [showConfirmPassword])
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -103,13 +120,27 @@ export default function ParentProfileClient({ profile, user }: ParentProfileClie
                         Seguridad
                     </h2>
                     <form onSubmit={handleUpdatePassword} className="space-y-4">
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nueva Contraseña</label>
-                            <input type="password" required value={passwordData.new} onChange={e => setPasswordData({ ...passwordData, new: e.target.value })} className="w-full px-5 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#0B1526] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                            <input type={showPassword ? 'text' : 'password'} required value={passwordData.new} onChange={e => setPasswordData({ ...passwordData, new: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#0B1526] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-[34px] p-1 text-gray-400 hover:text-liceo-gold transition-colors"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Confirmar Contraseña</label>
-                            <input type="password" required value={passwordData.confirm} onChange={e => setPasswordData({ ...passwordData, confirm: e.target.value })} className="w-full px-5 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#0B1526] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                            <input type={showConfirmPassword ? 'text' : 'password'} required value={passwordData.confirm} onChange={e => setPasswordData({ ...passwordData, confirm: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#0B1526] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-[34px] p-1 text-gray-400 hover:text-liceo-gold transition-colors"
+                            >
+                                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
                         </div>
                         <button type="submit" disabled={isSavingPass} className="w-full py-4 bg-liceo-gold text-[#0B1526] rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg disabled:opacity-50">
                             {isSavingPass ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (forceReset ? 'Establecer y Entrar' : 'Actualizar Password')}

@@ -161,6 +161,8 @@ function DashboardBottomNav() {
     )
 }
 
+import { SessionControl } from '@/components/session-control'
+
 export default function DashboardLayout({
     children,
 }: {
@@ -169,6 +171,7 @@ export default function DashboardLayout({
     // Force dark mode look globally for the dashboard
     return (
         <LangProvider>
+            <SessionControl />
             <div className="min-h-screen bg-gray-50 dark:bg-[#0B1526] text-gray-900 dark:text-white flex flex-col font-sans selection:bg-liceo-gold selection:text-[#0B1526]">
                 <DashboardHeader />
                 <main className="flex-1 w-full pt-20 md:pt-24 pb-24 lg:pb-8">

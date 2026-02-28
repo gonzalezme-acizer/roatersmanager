@@ -108,6 +108,22 @@ export async function activateUserAction(formData: {
     // 5. Borrar el Mock
     await supabase.from('profiles').delete().eq('id', formData.mockId)
 
-    revalidatePath('/dashboard/staff/profile')
+    revalidatePath('/dashboard/staff')
+    return { success: true }
+}
+
+export async function updatePasswordAction(newPassword: string) {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return { success: false, error: 'No autenticado.' }
+
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+
+    if (updateError) {
+        return { success: false, error: updateError.message }
+    }
+
+    // Limpiar flag the force_password_change
+    await supabase.from('profiles').update({ force_password_change: false }).eq('id', user.id)
     return { success: true }
 }

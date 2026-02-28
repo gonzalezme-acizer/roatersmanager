@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { showSuccessToast, showErrorToast } from '@/utils/toast'
 import { useLang } from '@/components/lang-provider'
 import {
     User, Phone, ShieldCheck, Mail, Save, Plus, X,
-    Loader2, Users, Key, Check, Copy, Baby, Search
+    Loader2, Users, Key, Check, Copy, Baby, Search, ShieldAlert, Eye, EyeOff
 } from 'lucide-react'
-import { activateUserAction } from './actions'
+import { activateUserAction, updatePasswordAction } from './actions'
 
 
 export default function ProfileClient({
@@ -26,6 +27,9 @@ export default function ProfileClient({
 }) {
     const supabase = createClient()
     const { t } = useLang()
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const forceReset = currentProfile?.force_password_change === true
 
     // My Profile State
     const [profileData, setProfileData] = useState({
@@ -33,7 +37,25 @@ export default function ProfileClient({
         phone: currentProfile?.phone || '',
         role: currentProfile?.role || 'Staff'
     })
+    const [passwordData, setPasswordData] = useState({ new: '', confirm: '' })
     const [isSavingMyProfile, setIsSavingMyProfile] = useState(false)
+    const [isSavingPass, setIsSavingPass] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+    useEffect(() => {
+        if (showPassword) {
+            const timer = setTimeout(() => setShowPassword(false), 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [showPassword])
+
+    useEffect(() => {
+        if (showConfirmPassword) {
+            const timer = setTimeout(() => setShowConfirmPassword(false), 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [showConfirmPassword])
 
     // Staff Management State
     const [staff, setStaff] = useState(allProfiles)
@@ -79,6 +101,28 @@ export default function ProfileClient({
             showErrorToast('Error', 'No se pudieron actualizar tus datos.')
         }
         setIsSavingMyProfile(false)
+    }
+
+    const handleUpdatePassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (passwordData.new !== passwordData.confirm) {
+            showErrorToast('Error', 'Las contraseñas no coinciden')
+            return
+        }
+        if (passwordData.new.length < 6) {
+            showErrorToast('Error', 'La contraseña debe tener al menos 6 caracteres')
+            return
+        }
+
+        setIsSavingPass(true)
+        const result = await updatePasswordAction(passwordData.new)
+        if (result.success) {
+            showSuccessToast('¡Listo!', 'Contraseña actualizada correctamente.')
+            if (forceReset) router.push('/dashboard/staff')
+        } else {
+            showErrorToast('Error', result.error || 'No se pudo cambiar la contraseña')
+        }
+        setIsSavingPass(false)
     }
 
     const handleCreateMockStaff = async (e: React.FormEvent) => {
@@ -161,10 +205,20 @@ export default function ProfileClient({
                 </p>
             </header>
 
+            {forceReset && (
+                <div className="mb-8 bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 flex items-start gap-4 text-amber-600 dark:text-amber-400">
+                    <ShieldAlert className="w-8 h-8 flex-shrink-0" />
+                    <div>
+                        <h3 className="font-black uppercase tracking-tight text-lg">Cambio de Contraseña Obligatorio</h3>
+                        <p className="text-sm font-medium mt-1 leading-relaxed opacity-80">Por seguridad, debes establecer una contraseña propia en tu primer ingreso al sistema antes de poder continuar.</p>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* MY PROFILE */}
-                <div className="bg-white dark:bg-[#0B1526] rounded-3xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-white/10 flex flex-col h-full">
+                <div className={`bg-white dark:bg-[#0B1526] rounded-3xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-white/10 flex flex-col h-full ${forceReset && 'opacity-50 pointer-events-none'}`}>
                     <h2 className="text-2xl font-black mb-6 flex items-center gap-3 dark:text-white">
                         <User className="w-6 h-6 text-liceo-primary dark:text-[#5EE5F8]" />
                         {t.profilePage.myPersonalData}
@@ -217,69 +271,100 @@ export default function ProfileClient({
                     </form>
                 </div>
 
-                {/* STAFF MANAGEMENT */}
-                <div className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-white/10 flex flex-col h-full relative">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-black flex items-center gap-3 dark:text-white">
-                            <Users className="w-6 h-6 text-liceo-accent dark:text-[#5EE5F8]" />
-                            {t.profilePage.staffDir}
-                        </h2>
-                        {isAdmin && (
-                            <button onClick={() => setIsCreatingStaff(true)} className="bg-liceo-primary/10 hover:bg-liceo-primary/20 dark:bg-[#5EE5F8]/10 dark:hover:bg-[#5EE5F8]/20 p-2.5 rounded-xl transition-colors border border-liceo-primary/10 dark:border-[#5EE5F8]/20">
-                                <Plus className="w-5 h-5 text-liceo-primary dark:text-[#5EE5F8]" />
+                {/* CHANGE PASSWORD */}
+                <div className={`${forceReset ? 'lg:col-span-2 max-w-2xl mx-auto w-full' : ''} bg-white dark:bg-[#0B1526] rounded-3xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-white/10 flex flex-col h-full`}>
+                    <h2 className="text-2xl font-black mb-6 flex items-center gap-3 dark:text-white">
+                        <Key className="w-6 h-6 text-liceo-gold" />
+                        Seguridad y Acceso
+                    </h2>
+                    <form onSubmit={handleUpdatePassword} className="space-y-4 flex-1 flex flex-col">
+                        <div className="space-y-2 relative">
+                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nueva Contraseña</label>
+                            <input type={showPassword ? 'text' : 'password'} required value={passwordData.new} onChange={e => setPasswordData({ ...passwordData, new: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#001224] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-[34px] p-1 text-gray-400 hover:text-liceo-gold transition-colors">
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
-                        )}
-                    </div>
+                        </div>
+                        <div className="space-y-2 relative">
+                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Confirmar Contraseña</label>
+                            <input type={showConfirmPassword ? 'text' : 'password'} required value={passwordData.confirm} onChange={e => setPasswordData({ ...passwordData, confirm: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#001224] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-[34px] p-1 text-gray-400 hover:text-liceo-gold transition-colors">
+                                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                        <div className="mt-auto pt-8">
+                            <button type="submit" disabled={isSavingPass} className="w-full py-4 bg-liceo-gold hover:bg-yellow-400 text-[#0B1526] rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg disabled:opacity-50">
+                                {isSavingPass ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (forceReset ? 'Establecer y Entrar' : 'Actualizar Password')}
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 border-t border-gray-100 dark:border-white/5 pt-6">
-                        {staff.map(member => {
-                            const isMock = !member.is_active
-                            const isCurrentUser = member.id === currentUser.id
-                            const childrenCount = linkages.filter(l => l.parent_profile_id === member.id).length
+                {/* STAFF MANAGEMENT */}
+                {!forceReset && (
+                    <div className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-white/10 flex flex-col h-full relative">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-black flex items-center gap-3 dark:text-white">
+                                <Users className="w-6 h-6 text-liceo-accent dark:text-[#5EE5F8]" />
+                                {t.profilePage.staffDir}
+                            </h2>
+                            {isAdmin && (
+                                <button onClick={() => setIsCreatingStaff(true)} className="bg-liceo-primary/10 hover:bg-liceo-primary/20 dark:bg-[#5EE5F8]/10 dark:hover:bg-[#5EE5F8]/20 p-2.5 rounded-xl transition-colors border border-liceo-primary/10 dark:border-[#5EE5F8]/20">
+                                    <Plus className="w-5 h-5 text-liceo-primary dark:text-[#5EE5F8]" />
+                                </button>
+                            )}
+                        </div>
 
-                            return (
-                                <div key={member.id} className="bg-white dark:bg-[#102035] p-5 rounded-3xl border border-gray-100 dark:border-white/5 flex flex-col gap-4 shadow-sm group hover:border-liceo-primary/30 dark:hover:border-[#5EE5F8]/30 transition-all">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-inner ${isMock ? 'bg-gray-100 dark:bg-white/5 text-gray-400' : 'bg-liceo-primary/10 dark:bg-[#5EE5F8]/10 text-liceo-primary dark:text-[#5EE5F8]'}`}>
-                                            {member.full_name ? member.full_name.charAt(0) : 'U'}
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="font-black text-gray-900 dark:text-white text-base leading-tight">{member.full_name || 'Sin Nombre'}</h3>
-                                                {isCurrentUser && (
-                                                    <span className="text-[8px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">TÚ</span>
-                                                )}
-                                                {isMock && (
-                                                    <span className="text-[8px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">MOCK</span>
-                                                )}
+                        <div className="flex-1 overflow-y-auto space-y-3 pr-2 border-t border-gray-100 dark:border-white/5 pt-6">
+                            {staff.map(member => {
+                                const isMock = !member.is_active
+                                const isCurrentUser = member.id === currentUser.id
+                                const childrenCount = linkages.filter(l => l.parent_profile_id === member.id).length
+
+                                return (
+                                    <div key={member.id} className="bg-white dark:bg-[#102035] p-5 rounded-3xl border border-gray-100 dark:border-white/5 flex flex-col gap-4 shadow-sm group hover:border-liceo-primary/30 dark:hover:border-[#5EE5F8]/30 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-inner ${isMock ? 'bg-gray-100 dark:bg-white/5 text-gray-400' : 'bg-liceo-primary/10 dark:bg-[#5EE5F8]/10 text-liceo-primary dark:text-[#5EE5F8]'}`}>
+                                                {member.full_name ? member.full_name.charAt(0) : 'U'}
                                             </div>
-                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-0.5">{member.role || 'Staff'}</p>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-black text-gray-900 dark:text-white text-base leading-tight">{member.full_name || 'Sin Nombre'}</h3>
+                                                    {isCurrentUser && (
+                                                        <span className="text-[8px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">TÚ</span>
+                                                    )}
+                                                    {isMock && (
+                                                        <span className="text-[8px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider">MOCK</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-0.5">{member.role || 'Staff'}</p>
+                                            </div>
+
+                                            {isAdmin && isMock && (
+                                                <button
+                                                    onClick={() => setIsActivatingUser(member)}
+                                                    className="bg-liceo-gold hover:bg-yellow-400 text-[#0B1526] px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md active:scale-95 transition-all"
+                                                >
+                                                    Activar Acceso
+                                                </button>
+                                            )}
                                         </div>
 
-                                        {isAdmin && isMock && (
-                                            <button
-                                                onClick={() => setIsActivatingUser(member)}
-                                                className="bg-liceo-gold hover:bg-yellow-400 text-[#0B1526] px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md active:scale-95 transition-all"
-                                            >
-                                                Activar Acceso
-                                            </button>
+                                        {/* Sub-info: Hijos linked */}
+                                        {member.is_parent && (
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-sky-50 dark:bg-[#5EE5F8]/5 rounded-xl border border-sky-100 dark:border-[#5EE5F8]/10 w-fit">
+                                                <Baby className="w-3.5 h-3.5 text-sky-600 dark:text-[#5EE5F8]" />
+                                                <span className="text-[10px] font-black text-sky-700 dark:text-[#5EE5F8] uppercase tracking-wider">
+                                                    Padre: {childrenCount} Hijos vinculados
+                                                </span>
+                                            </div>
                                         )}
                                     </div>
-
-                                    {/* Sub-info: Hijos linked */}
-                                    {member.is_parent && (
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-sky-50 dark:bg-[#5EE5F8]/5 rounded-xl border border-sky-100 dark:border-[#5EE5F8]/10 w-fit">
-                                            <Baby className="w-3.5 h-3.5 text-sky-600 dark:text-[#5EE5F8]" />
-                                            <span className="text-[10px] font-black text-sky-700 dark:text-[#5EE5F8] uppercase tracking-wider">
-                                                Padre: {childrenCount} Hijos vinculados
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        })}
+                                )
+                            })}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* ACTIVATION MODAL */}

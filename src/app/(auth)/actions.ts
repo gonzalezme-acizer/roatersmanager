@@ -24,6 +24,22 @@ export async function login(formData: FormData) {
         return { error: 'Credenciales inválidas.' }
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    const sessionToken = crypto.randomUUID()
+
+    // Guardar token en metadata de Auth (evita alterar database de Profiles)
+    await supabase.auth.updateUser({ data: { current_session_token: sessionToken } })
+
+    // Set cookie para validación de concurrentes
+    const { cookies } = await import('next/headers')
+    const cookieStore = await cookies()
+    cookieStore.set('roaster_session_token', sessionToken, {
+        path: '/',
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 // 1 day
+    })
+
     const { data: profile } = await supabase
         .from('profiles')
         .select('role, is_parent')
