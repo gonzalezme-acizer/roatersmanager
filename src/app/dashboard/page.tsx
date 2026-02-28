@@ -22,7 +22,7 @@ export default async function DashboardRedirect() {
     }
 
     // Lógica de redirección por defecto según el rol principal
-    const isStaffRole = profile.role === 'Admin' || profile.role === 'Administrador' || profile.role === 'Entrenador' || profile.role === 'Staff'
+    const isStaffRole = profile.role === 'Admin' || profile.role === 'Administrador' || profile.role === 'Entrenador' || profile.role === 'Staff' || profile.role === 'Manager'
 
     if (isStaffRole) {
         redirect('/dashboard/staff')

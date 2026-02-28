@@ -17,7 +17,7 @@ export default async function DashboardPage() {
         .single()
 
     // Redirigir si es padre y no tiene rol de staff
-    if (profile?.is_parent && profile?.role !== 'Administrador' && profile?.role !== 'Entrenador' && profile?.role !== 'Admin') {
+    if (profile?.is_parent && profile?.role !== 'Administrador' && profile?.role !== 'Entrenador' && profile?.role !== 'Admin' && profile?.role !== 'Manager') {
         redirect('/dashboard/parent')
     }
 
@@ -30,7 +30,7 @@ export default async function DashboardPage() {
     const { data: events } = await supabase.from('events').select('*')
     const { data: attendance } = await supabase.from('event_attendance').select('*')
 
-    const playersWithLatestSkills = (players || []).map(p => {
+    const playersWithLatestSkills = (players || []).map((p: any) => {
         const sortedSkills = p.skills?.sort((a: any, b: any) => new Date(b.date_logged || 0).getTime() - new Date(a.date_logged || 0).getTime())
         return {
             ...p,

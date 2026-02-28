@@ -30,7 +30,7 @@ export async function login(formData: FormData) {
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single()
 
-    const isStaffRole = profile?.role === 'Admin' || profile?.role === 'Administrador' || profile?.role === 'Entrenador' || profile?.role === 'Staff'
+    const isStaffRole = profile?.role === 'Admin' || profile?.role === 'Administrador' || profile?.role === 'Entrenador' || profile?.role === 'Staff' || profile?.role === 'Manager'
 
     if (entryPoint === 'staff' && !isStaffRole) {
         // Si intenta entrar como staff pero NO tiene rol de staff
