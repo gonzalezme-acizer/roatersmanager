@@ -100,23 +100,25 @@ export default function LoginPage() {
                             placeholder="tu@email.com"
                         />
                     </div>
-                    <div className="relative">
+                    <div>
                         <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest opacity-60">Contraseña</label>
-                        <input
-                            name="password"
-                            type={showPassword ? 'text' : 'password'}
-                            required
-                            className="w-full px-4 py-3 bg-[#0B1526] border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-liceo-gold dark:focus:ring-[#5EE5F8] focus:border-transparent outline-none transition-all placeholder:text-gray-600 font-medium text-sm pr-12"
-                            placeholder="••••••••"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-[32px] p-1 text-gray-400 hover:text-white transition-colors"
-                            tabIndex={-1}
-                        >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
+                        <div className="relative">
+                            <input
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                required
+                                className="w-full px-4 py-3 bg-[#0B1526] border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-liceo-gold dark:focus:ring-[#5EE5F8] focus:border-transparent outline-none transition-all placeholder:text-gray-600 font-medium text-sm pr-12"
+                                placeholder="••••••••"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white transition-colors"
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
                     </div>
                     <button
                         type="submit"

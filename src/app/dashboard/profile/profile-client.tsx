@@ -278,19 +278,23 @@ export default function ProfileClient({
                         Seguridad y Acceso
                     </h2>
                     <form onSubmit={handleUpdatePassword} className="space-y-4 flex-1 flex flex-col">
-                        <div className="space-y-2 relative">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Nueva Contraseña</label>
-                            <input type={showPassword ? 'text' : 'password'} required value={passwordData.new} onChange={e => setPasswordData({ ...passwordData, new: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#001224] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-[34px] p-1 text-gray-400 hover:text-liceo-gold transition-colors">
-                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
+                            <div className="relative">
+                                <input type={showPassword ? 'text' : 'password'} required value={passwordData.new} onChange={e => setPasswordData({ ...passwordData, new: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#001224] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-liceo-gold transition-colors">
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
-                        <div className="space-y-2 relative">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Confirmar Contraseña</label>
-                            <input type={showConfirmPassword ? 'text' : 'password'} required value={passwordData.confirm} onChange={e => setPasswordData({ ...passwordData, confirm: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#001224] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
-                            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-[34px] p-1 text-gray-400 hover:text-liceo-gold transition-colors">
-                                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
+                            <div className="relative">
+                                <input type={showConfirmPassword ? 'text' : 'password'} required value={passwordData.confirm} onChange={e => setPasswordData({ ...passwordData, confirm: e.target.value })} className="w-full pl-5 pr-12 py-3.5 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-[#001224] font-bold text-sm dark:text-white focus:ring-2 focus:ring-liceo-gold outline-none transition-all" />
+                                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-liceo-gold transition-colors">
+                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
                         <div className="mt-auto pt-8">
                             <button type="submit" disabled={isSavingPass} className="w-full py-4 bg-liceo-gold hover:bg-yellow-400 text-[#0B1526] rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-lg disabled:opacity-50">
