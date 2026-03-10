@@ -12,6 +12,19 @@ export default async function TeamsPage() {
         redirect('/login')
     }
 
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const staffRoles = ['Admin', 'Manager', 'Staff', 'Administrador', 'Entrenador', 'Preparador Físico']
+    const isStaff = staffRoles.includes(profile?.role || '')
+
+    if (!isStaff) {
+        redirect('/dashboard/parent')
+    }
+
     const { data: teams } = await supabase
         .from('teams')
         .select('*')

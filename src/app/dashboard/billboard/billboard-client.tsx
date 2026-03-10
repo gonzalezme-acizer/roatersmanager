@@ -165,13 +165,15 @@ export default function BillboardClient({ initialPosts, user }: any) {
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 font-medium">Anuncios, noticias y mensajes para el plantel.</p>
                 </div>
-                <button
-                    onClick={() => setIsAdding(true)}
-                    className="bg-liceo-primary hover:bg-liceo-primary/90 text-white dark:bg-liceo-gold dark:text-[#0B1526] font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-liceo-primary/20 dark:shadow-liceo-gold/20"
-                >
-                    <Plus className="w-5 h-5" />
-                    NUEVO MENSAJE
-                </button>
+                {(user?.role === 'Admin' || user?.role === 'Manager' || user?.role === 'Administrador') && (
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="bg-liceo-primary hover:bg-liceo-primary/90 text-white dark:bg-liceo-gold dark:text-[#0B1526] font-black px-6 py-3 rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-liceo-primary/20 dark:shadow-liceo-gold/20"
+                    >
+                        <Plus className="w-5 h-5" />
+                        NUEVO MENSAJE
+                    </button>
+                )}
             </div>
 
             {/* Filters */}
@@ -188,18 +190,23 @@ export default function BillboardClient({ initialPosts, user }: any) {
                 >
                     <Globe className="w-3.5 h-3.5" /> Públicos
                 </button>
-                <button
-                    onClick={() => setFilter('staff')}
-                    className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all flex-shrink-0 flex items-center gap-1.5 ${filter === 'staff' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10'}`}
-                >
-                    <ShieldCheck className="w-3.5 h-3.5" /> Staff
-                </button>
-                <button
-                    onClick={() => setFilter('privado')}
-                    className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all flex-shrink-0 flex items-center gap-1.5 ${filter === 'privado' ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10'}`}
-                >
-                    <Lock className="w-3.5 h-3.5" /> Privados
-                </button>
+                {/* Staff posts visible to Admin, Manager and Staff */}
+                {['Admin', 'Manager', 'Staff', 'Administrador'].includes(user?.role) && (
+                    <button
+                        onClick={() => setFilter('staff')}
+                        className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all flex-shrink-0 flex items-center gap-1.5 ${filter === 'staff' ? 'bg-blue-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10'}`}
+                    >
+                        <ShieldCheck className="w-3.5 h-3.5" /> Staff
+                    </button>
+                )}
+                {['Admin', 'Manager', 'Administrador'].includes(user?.role) && (
+                    <button
+                        onClick={() => setFilter('privado')}
+                        className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all flex-shrink-0 flex items-center gap-1.5 ${filter === 'privado' ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10'}`}
+                    >
+                        <Lock className="w-3.5 h-3.5" /> Privados
+                    </button>
+                )}
             </div>
 
             {/* Posts Feed */}
@@ -227,8 +234,8 @@ export default function BillboardClient({ initialPosts, user }: any) {
                                         <div className="flex items-center gap-2">
                                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString('es-AR')}</span>
                                             <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${post.category === 'publico' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20' :
-                                                    post.category === 'staff' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20' :
-                                                        'bg-amber-100 text-amber-600 dark:bg-amber-500/20'
+                                                post.category === 'staff' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20' :
+                                                    'bg-amber-100 text-amber-600 dark:bg-amber-500/20'
                                                 }`}>
                                                 {post.category}
                                             </span>

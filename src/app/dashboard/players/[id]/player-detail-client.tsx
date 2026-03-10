@@ -13,7 +13,7 @@ import getCroppedImg from '@/utils/cropImage'
 const FORWARDS_POSITIONS = ["Pilar", "Hooker", "Segunda línea", "Ala", "Octavo"]
 const BACKS_POSITIONS = ["Medio Scrum", "Apertura", "Primer Centro", "Segundo Centro", "Wing", "Full Back"]
 
-export default function PlayerDetailClient({ initialPlayer, initialSkills }: { initialPlayer: any, initialSkills: any }) {
+export default function PlayerDetailClient({ initialPlayer, initialSkills, userRole }: { initialPlayer: any, initialSkills: any, userRole: string }) {
     const { t } = useLang()
     const router = useRouter()
     const supabase = createClient()
@@ -23,6 +23,8 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills }: { i
     const [uploadingImage, setUploadingImage] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [player, setPlayer] = useState(initialPlayer)
+
+    const isAdminOrManager = userRole === 'Admin' || userRole === 'Manager' || userRole === 'Administrador'
 
     // Crop States
     const [imageSrc, setImageSrc] = useState<string | null>(null)
@@ -337,17 +339,17 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills }: { i
                         <div className="space-y-4">
                             {isEditing && (
                                 <>
-                                    <Field label="Nombre" name="first_name" value={player.first_name} isEditing={isEditing} onChange={handleChange} />
-                                    <Field label="Apellido" name="last_name" value={player.last_name} isEditing={isEditing} onChange={handleChange} />
-                                    <Field label="Apodo" name="nickname" value={player.nickname} isEditing={isEditing} onChange={handleChange} />
+                                    <Field label="Nombre" name="first_name" value={player.first_name} isEditing={isEditing && isAdminOrManager} onChange={handleChange} />
+                                    <Field label="Apellido" name="last_name" value={player.last_name} isEditing={isEditing && isAdminOrManager} onChange={handleChange} />
+                                    <Field label="Apodo" name="nickname" value={player.nickname} isEditing={isEditing && isAdminOrManager} onChange={handleChange} />
                                     <div className="h-4"></div>
                                 </>
                             )}
-                            <Field label={t.player.fields.dni} name="dni" value={player.dni} isEditing={isEditing} onChange={handleChange} />
-                            <Field label={t.player.fields.birthDate} name="birth_date" value={player.birth_date} isEditing={isEditing} onChange={handleChange} type="date" />
+                            <Field label={t.player.fields.dni} name="dni" value={player.dni} isEditing={isEditing && isAdminOrManager} onChange={handleChange} />
+                            <Field label={t.player.fields.birthDate} name="birth_date" value={player.birth_date} isEditing={isEditing && isAdminOrManager} onChange={handleChange} type="date" />
                             <Field label={t.player.fields.age} name="age" value={player.age} isEditing={false} type="number" />
 
-                            {isEditing ? (
+                            {isEditing && isAdminOrManager ? (
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{t.player.fields.bloodType}</label>
                                     <select name="blood_type" value={player.blood_type || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-200 dark:border-white/10 rounded-lg bg-gray-50 dark:bg-[#0B1526]/50 text-sm focus:ring-2 focus:ring-liceo-accent outline-none font-medium text-gray-900 dark:text-white">
@@ -365,7 +367,7 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills }: { i
                                     name="medical_clearance"
                                     checked={player.medical_clearance || false}
                                     onChange={handleChange}
-                                    disabled={!isEditing}
+                                    disabled={!isEditing || !isAdminOrManager}
                                     className="w-4 h-4 rounded border-gray-300 text-liceo-primary focus:ring-liceo-primary dark:bg-white/10 dark:border-white/20 dark:checked:bg-liceo-gold disabled:opacity-50 cursor-pointer"
                                 />
                                 <label className={`text-sm font-bold ${player.medical_clearance ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-700 dark:text-gray-300'}`}>
@@ -375,7 +377,7 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills }: { i
                             {isEditing && (
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{t.player.fields.status}</label>
-                                    <select name="status" value={player.status} onChange={handleChange} className="w-full px-3 py-2 border border-gray-200 dark:border-white/10 rounded-lg bg-gray-50 dark:bg-[#0B1526]/50 text-sm focus:ring-2 focus:ring-liceo-accent outline-none">
+                                    <select name="status" value={player.status} onChange={handleChange} disabled={!isAdminOrManager} className="w-full px-3 py-2 border border-gray-200 dark:border-white/10 rounded-lg bg-gray-50 dark:bg-[#0B1526]/50 text-sm focus:ring-2 focus:ring-liceo-accent outline-none disabled:opacity-50">
                                         <option value="Activo">Activo</option>
                                         <option value="Suspendido">Suspendido</option>
                                         <option value="Lesionado">Lesionado</option>
@@ -392,10 +394,10 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills }: { i
                             {t.player.biometry}
                         </h3>
                         <div className="space-y-4">
-                            <Field label={t.player.fields.height} name="height" value={player.height} isEditing={isEditing} onChange={handleChange} type="number" step="0.01" />
-                            <Field label={t.player.fields.weight} name="weight" value={player.weight} isEditing={isEditing} onChange={handleChange} type="number" step="0.01" />
+                            <Field label={t.player.fields.height} name="height" value={player.height} isEditing={isEditing && isAdminOrManager} onChange={handleChange} type="number" step="0.01" />
+                            <Field label={t.player.fields.weight} name="weight" value={player.weight} isEditing={isEditing && isAdminOrManager} onChange={handleChange} type="number" step="0.01" />
 
-                            {isEditing ? (
+                            {isEditing && isAdminOrManager ? (
                                 <>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{t.player.fields.dominantFoot}</label>

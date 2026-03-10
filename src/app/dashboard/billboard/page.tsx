@@ -12,17 +12,34 @@ export default async function BillboardPage() {
         redirect('/login')
     }
 
+    // Fetch user profile
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
     // Fetch posts with author info
-    // Only fetch public and staff posts (for now, staff posts can be seen by auth users)
-    const { data: posts } = await supabase
+    let query = supabase
         .from('billboard_posts')
         .select('*, profiles:author_id(full_name, image_url)')
-        .order('created_at', { ascending: false })
+
+    const staffRoles = ['Admin', 'Manager', 'Staff', 'Administrador', 'Entrenador', 'Preparador Físico']
+    const isStaff = staffRoles.includes(profile?.role || '')
+
+    if (profile?.role === 'Padres') {
+        query = query.eq('category', 'publico')
+    } else if (profile?.role === 'Staff' || profile?.role === 'Entrenador') {
+        query = query.in('category', ['publico', 'staff'])
+    }
+    // Admin/Manager continues with full query
+
+    const { data: posts } = await query.order('created_at', { ascending: false })
 
     return (
         <BillboardClient
             initialPosts={posts || []}
-            user={user}
+            user={profile}
         />
     )
 }

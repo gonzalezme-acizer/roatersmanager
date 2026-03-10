@@ -265,109 +265,124 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
                         </div>
 
                         {/* Stats & Radar Group */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {['Admin', 'Manager', 'Staff'].includes(profile?.role) ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-                            {/* Radar Chart */}
-                            <div className="bg-white dark:bg-[#111f38] rounded-[2.5rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl">
-                                <div className="flex items-center justify-between mb-8">
-                                    <div className="space-y-1">
-                                        <h3 className="font-black text-liceo-primary dark:text-liceo-gold uppercase text-xs tracking-widest">Desempeño Técnico</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Evaluación de Skills</p>
-                                    </div>
-                                    <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                                        <Activity className="w-5 h-5 text-liceo-gold" />
-                                    </div>
-                                </div>
-                                <div className="h-[300px] w-full">
-                                    {skillData.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
-                                                <PolarGrid stroke="#94a3b8" strokeOpacity={0.2} />
-                                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 900 }} />
-                                                <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fill: '#94a3b8', fontSize: 8 }} axisLine={false} />
-                                                <Radar
-                                                    name={activeChild.first_name}
-                                                    dataKey="A"
-                                                    stroke="#C5A059"
-                                                    fill="#C5A059"
-                                                    fillOpacity={0.4}
-                                                    strokeWidth={2}
-                                                />
-                                            </RadarChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-                                            <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center opacity-30">
-                                                <BarChart3 className="w-8 h-8" />
-                                            </div>
-                                            <p className="text-[10px] font-black uppercase tracking-tighter">Sin evaluaciones registradas</p>
+                                {/* Radar Chart */}
+                                <div className="bg-white dark:bg-[#111f38] rounded-[2.5rem] p-8 border border-gray-200 dark:border-white/5 shadow-xl">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="space-y-1">
+                                            <h3 className="font-black text-liceo-primary dark:text-liceo-gold uppercase text-xs tracking-widest">Desempeño Técnico</h3>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Evaluación de Skills</p>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Attendance Progress */}
-                            <div className="bg-white dark:bg-[#111f38] rounded-[2.5rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl">
-                                <div className="flex items-center justify-between mb-10">
-                                    <div className="space-y-1">
-                                        <h3 className="font-black text-liceo-primary dark:text-liceo-gold uppercase text-xs tracking-widest">Presencialidad</h3>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Temporada Actual</p>
+                                        <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center">
+                                            <Activity className="w-5 h-5 text-liceo-gold" />
+                                        </div>
                                     </div>
-                                    <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center">
-                                        <Calendar className="w-5 h-5 text-liceo-gold" />
+                                    <div className="h-[300px] w-full">
+                                        {skillData.length > 0 ? (
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
+                                                    <PolarGrid stroke="#94a3b8" strokeOpacity={0.2} />
+                                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 900 }} />
+                                                    <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fill: '#94a3b8', fontSize: 8 }} axisLine={false} />
+                                                    <Radar
+                                                        name={activeChild.first_name}
+                                                        dataKey="A"
+                                                        stroke="#C5A059"
+                                                        fill="#C5A059"
+                                                        fillOpacity={0.4}
+                                                        strokeWidth={2}
+                                                    />
+                                                </RadarChart>
+                                            </ResponsiveContainer>
+                                        ) : (
+                                            <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                                                <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center opacity-30">
+                                                    <BarChart3 className="w-8 h-8" />
+                                                </div>
+                                                <p className="text-[10px] font-black uppercase tracking-tighter">Sin evaluaciones registradas</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="space-y-8">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-5xl font-black text-liceo-primary dark:text-white leading-none">
-                                                {attendanceSummary.total > 0
-                                                    ? Math.round((attendanceSummary.present / attendanceSummary.total) * 100)
-                                                    : 0}<span className="text-2xl text-liceo-gold">%</span>
+                                {/* Attendance Progress */}
+                                <div className="bg-white dark:bg-[#111f38] rounded-[2.5rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl">
+                                    <div className="flex items-center justify-between mb-10">
+                                        <div className="space-y-1">
+                                            <h3 className="font-black text-liceo-primary dark:text-liceo-gold uppercase text-xs tracking-widest">Presencialidad</h3>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Temporada Actual</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center">
+                                            <Calendar className="w-5 h-5 text-liceo-gold" />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-5xl font-black text-liceo-primary dark:text-white leading-none">
+                                                    {attendanceSummary.total > 0
+                                                        ? Math.round((attendanceSummary.present / attendanceSummary.total) * 100)
+                                                        : 0}<span className="text-2xl text-liceo-gold">%</span>
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-[10px] font-black py-1.5 px-3 bg-green-500/10 text-green-500 rounded-lg uppercase tracking-widest">Consistente</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                                    <span className="text-green-500 flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3" /> Presente</span>
+                                                    <span className="text-gray-400">{attendanceSummary.present}</span>
+                                                </div>
+                                                <div className="h-2.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-green-500 rounded-full transition-all duration-1000"
+                                                        style={{ width: `${attendanceSummary.total > 0 ? (attendanceSummary.present / attendanceSummary.total) * 100 : 0}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                                    <span className="text-red-500 flex items-center gap-1.5"><XCircle className="w-3 h-3" /> Ausente</span>
+                                                    <span className="text-gray-400">{attendanceSummary.absent}</span>
+                                                </div>
+                                                <div className="h-2.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-red-500 rounded-full transition-all duration-1000"
+                                                        style={{ width: `${attendanceSummary.total > 0 ? (attendanceSummary.absent / attendanceSummary.total) * 100 : 0}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight leading-relaxed">
+                                                Basado en los últimos {attendanceSummary.total} eventos registrados por el cuerpo técnico.
                                             </p>
                                         </div>
-                                        <div className="text-right">
-                                            <span className="text-[10px] font-black py-1.5 px-3 bg-green-500/10 text-green-500 rounded-lg uppercase tracking-widest">Consistente</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                                <span className="text-green-500 flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3" /> Presente</span>
-                                                <span className="text-gray-400">{attendanceSummary.present}</span>
-                                            </div>
-                                            <div className="h-2.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-green-500 rounded-full transition-all duration-1000"
-                                                    style={{ width: `${attendanceSummary.total > 0 ? (attendanceSummary.present / attendanceSummary.total) * 100 : 0}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                                <span className="text-red-500 flex items-center gap-1.5"><XCircle className="w-3 h-3" /> Ausente</span>
-                                                <span className="text-gray-400">{attendanceSummary.absent}</span>
-                                            </div>
-                                            <div className="h-2.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-red-500 rounded-full transition-all duration-1000"
-                                                    style={{ width: `${attendanceSummary.total > 0 ? (attendanceSummary.absent / attendanceSummary.total) * 100 : 0}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-2">
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight leading-relaxed">
-                                            Basado en los últimos {attendanceSummary.total} eventos registrados por el cuerpo técnico.
-                                        </p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] p-10 border border-gray-100 dark:border-white/5 text-center space-y-4 shadow-inner">
+                                <div className="w-16 h-16 bg-gray-100 dark:bg-white/10 rounded-full flex items-center justify-center mx-auto text-gray-400">
+                                    <Info className="w-8 h-8 opacity-50" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black dark:text-white uppercase tracking-tight">Seguimiento de Evolución</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto mt-1 font-medium italic">
+                                        Las métricas de Radar y Analítica de Asistencia son para uso interno del Staff.
+                                        En esta pantalla podés ver la información básica y comunicados de {activeChild.first_name}.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
 
                     </div>
 

@@ -32,5 +32,19 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
         .limit(1)
         .single()
 
-    return <PlayerDetailClient initialPlayer={player} initialSkills={skills || null} />
+    // Fetch user profile for role verification
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    const staffRoles = ['Admin', 'Manager', 'Staff', 'Administrador', 'Entrenador', 'Preparador Físico']
+    const isStaff = staffRoles.includes(profile?.role || '')
+
+    if (!isStaff) {
+        redirect('/dashboard/parent')
+    }
+
+    return <PlayerDetailClient initialPlayer={player} initialSkills={skills || null} userRole={profile?.role || 'Staff'} />
 }

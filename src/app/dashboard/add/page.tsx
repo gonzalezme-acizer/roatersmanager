@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useLang } from '@/components/lang-provider'
@@ -15,9 +15,45 @@ export default function AddPlayerPage() {
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [nickname, setNickname] = useState('')
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true) // Start loading to check role
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+    const [isStaff, setIsStaff] = useState<boolean | null>(null)
+
+    useEffect(() => {
+        const checkRole = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                router.push('/login')
+                return
+            }
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+
+            const staffRoles = ['Admin', 'Manager', 'Staff', 'Administrador', 'Entrenador', 'Preparador Físico']
+            const staffFlag = staffRoles.includes(profile?.role || '')
+
+            if (!staffFlag) {
+                router.push('/dashboard/parent')
+            } else {
+                setIsStaff(true)
+                setLoading(false)
+            }
+        }
+        checkRole()
+    }, [router, supabase])
+
+    if (loading && isStaff === null) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-liceo-gold"></div>
+            </div>
+        )
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
