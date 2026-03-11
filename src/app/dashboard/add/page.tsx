@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { isStaff } from '@/utils/roles'
 import { useLang } from '@/components/lang-provider'
 import { ChevronLeft, UserPlus, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -18,7 +19,7 @@ export default function AddPlayerPage() {
     const [loading, setLoading] = useState(true) // Start loading to check role
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
-    const [isStaff, setIsStaff] = useState<boolean | null>(null)
+    const [isStaffValidated, setIsStaffValidated] = useState<boolean | null>(null)
 
     useEffect(() => {
         const checkRole = async () => {
@@ -34,20 +35,19 @@ export default function AddPlayerPage() {
                 .eq('id', user.id)
                 .single()
 
-            const staffRoles = ['Admin', 'Manager', 'Staff', 'Administrador', 'Entrenador', 'Preparador Físico']
-            const staffFlag = staffRoles.includes(profile?.role || '')
+            const staffFlag = isStaff(profile?.role)
 
             if (!staffFlag) {
                 router.push('/dashboard/parent')
             } else {
-                setIsStaff(true)
+                setIsStaffValidated(true)
                 setLoading(false)
             }
         }
         checkRole()
     }, [router, supabase])
 
-    if (loading && isStaff === null) {
+    if (loading && isStaffValidated === null) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-liceo-gold"></div>

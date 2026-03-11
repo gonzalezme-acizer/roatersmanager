@@ -3,13 +3,15 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { STAFF_ROLES } from '@/utils/roles'
 import { showSuccessToast, showErrorToast } from '@/utils/toast'
 import { useLang } from '@/components/lang-provider'
 import {
     User, Phone, ShieldCheck, Mail, Save, Plus, X,
-    Loader2, Users, Key, Check, Copy, Baby, Search, ShieldAlert, Eye, EyeOff
+    Loader2, Users, Key, Check, Copy, Baby, Search, ShieldAlert, Eye, EyeOff,
+    Edit2, Trash2
 } from 'lucide-react'
-import { activateUserAction, updatePasswordAction } from './actions'
+import { activateUserAction, updatePasswordAction, updateUserAdminAction, deleteUserAdminAction } from './actions'
 
 
 export default function ProfileClient({
@@ -65,6 +67,9 @@ export default function ProfileClient({
     // UI Modals State
     const [isCreatingStaff, setIsCreatingStaff] = useState(false)
     const [isActivatingUser, setIsActivatingUser] = useState<any>(null) // Profile being activated
+    const [isEditingUser, setIsEditingUser] = useState<any>(null) // User being edited
+    const [isEditing, setIsEditing] = useState(false)
+    const [isDeleting, setIsDeleting] = useState<string | null>(null) // ID of member being deleted
 
     // Form States
     const [newStaff, setNewStaff] = useState({ full_name: '', role: 'Staff', phone: '', is_parent: false })
@@ -76,8 +81,8 @@ export default function ProfileClient({
     const [copied, setCopied] = useState(false)
     const [childSearch, setChildSearch] = useState('')
 
-    // Roles permitidos (Basado en users_evolution.sql)
-    const roles = ['Admin', 'Manager', 'Staff', 'Padres']
+    // Roles permitidos
+    const roles = [...STAFF_ROLES, 'Padres']
 
     // Admin check
     const isAdmin = currentProfile?.role === 'Admin'
@@ -206,6 +211,39 @@ export default function ProfileClient({
         navigator.clipboard.writeText(`RugbyLink M13\nAcceso Activado:\nEmail: ${activateForm.email}\nClave: ${tempPassword}\n\nRecordá cambiar tu clave al ingresar.`)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
+    }
+
+    const handleEditUser = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsEditing(true)
+        const result = await updateUserAdminAction({
+            userId: isEditingUser.id,
+            full_name: isEditingUser.full_name,
+            role: isEditingUser.role,
+            phone: isEditingUser.phone,
+            is_parent: isEditingUser.is_parent,
+            is_active: isEditingUser.is_active
+        })
+
+        if (!result.error) {
+            showSuccessToast('Usuario Actualizado', 'Los cambios fueron guardados.')
+            setIsEditingUser(null)
+        } else {
+            showErrorToast('Error', result.error)
+        }
+        setIsEditing(false)
+    }
+
+    const handleDeleteUser = async (userId: string) => {
+        if (!confirm('¿Estás seguro que deseás borrar este perfil? Esta acción es irreversible.')) return
+        setIsDeleting(userId)
+        const result = await deleteUserAdminAction(userId)
+        if (!result.error) {
+            showSuccessToast('Usuario Eliminado', 'El perfil ha sido removido.')
+        } else {
+            showErrorToast('Error', result.error)
+        }
+        setIsDeleting(null)
     }
 
     return (
@@ -388,13 +426,32 @@ export default function ProfileClient({
                                                 <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-0.5">{member.role || 'Staff'}</p>
                                             </div>
 
-                                            {isAdmin && isMock && (
-                                                <button
-                                                    onClick={() => setIsActivatingUser(member)}
-                                                    className="bg-liceo-gold hover:bg-yellow-400 text-[#0B1526] px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md active:scale-95 transition-all"
-                                                >
-                                                    Activar Acceso
-                                                </button>
+                                            {isAdmin && (
+                                                <div className="flex gap-1.5">
+                                                    {isMock && (
+                                                        <button
+                                                            onClick={() => setIsActivatingUser(member)}
+                                                            className="bg-liceo-gold hover:bg-yellow-400 text-[#0B1526] px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md active:scale-95 transition-all"
+                                                        >
+                                                            Activar
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => setIsEditingUser(member)}
+                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors text-gray-400 hover:text-liceo-primary dark:hover:text-[#5EE5F8]"
+                                                        title="Editar"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(member.id)}
+                                                        disabled={isDeleting === member.id || isCurrentUser}
+                                                        className={`p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-colors ${isCurrentUser ? 'opacity-20 cursor-not-allowed' : 'text-gray-400 hover:text-red-500'}`}
+                                                        title={isCurrentUser ? "No podés borrarte a vos mismo" : "Eliminar"}
+                                                    >
+                                                        {isDeleting === member.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
 
@@ -612,6 +669,113 @@ export default function ProfileClient({
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT USER MODAL */}
+            {isEditingUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0B1526]/80 backdrop-blur-md">
+                    <div className="bg-white dark:bg-[#111f38] w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                        <form onSubmit={handleEditUser} className="p-8">
+                            <div className="flex justify-between items-center mb-8">
+                                <div>
+                                    <h2 className="text-2xl font-black dark:text-white uppercase tracking-tighter flex items-center gap-3">
+                                        <Edit2 className="w-6 h-6 text-liceo-primary dark:text-[#5EE5F8]" />
+                                        Editar Perfil
+                                    </h2>
+                                    <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mt-1">ID: {isEditingUser.id.substring(0, 8)}...</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditingUser(null)}
+                                    className="p-3 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-2xl transition-all"
+                                >
+                                    <X className="w-5 h-5 dark:text-white" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 mb-2 block">{t.profilePage.fullName}</label>
+                                    <input
+                                        required
+                                        value={isEditingUser.full_name}
+                                        onChange={e => setIsEditingUser({ ...isEditingUser, full_name: e.target.value })}
+                                        className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0B1526] focus:outline-none focus:ring-2 focus:ring-liceo-primary font-bold dark:text-white text-sm"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 mb-2 block">Rol / Cargo</label>
+                                        <select
+                                            value={isEditingUser.role}
+                                            onChange={e => setIsEditingUser({ ...isEditingUser, role: e.target.value })}
+                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0B1526] focus:outline-none focus:ring-2 focus:ring-liceo-primary font-bold dark:text-white text-sm appearance-none"
+                                        >
+                                            {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 mb-2 block">Teléfono</label>
+                                        <input
+                                            value={isEditingUser.phone || ''}
+                                            onChange={e => setIsEditingUser({ ...isEditingUser, phone: e.target.value })}
+                                            className="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0B1526] focus:outline-none focus:ring-2 focus:ring-liceo-primary font-bold dark:text-white text-sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-[#0B1526]/50 p-6 rounded-[2rem] border border-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isEditingUser.is_parent ? 'bg-[#5EE5F8] text-[#0B1526]' : 'bg-white/5 text-gray-500'}`}>
+                                            <Baby className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black dark:text-white uppercase tracking-wider">Perfil Padre</p>
+                                        </div>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={isEditingUser.is_parent}
+                                            onChange={e => setIsEditingUser({ ...isEditingUser, is_parent: e.target.checked })}
+                                        />
+                                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-[#0B1526]/50 p-6 rounded-[2rem] border border-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isEditingUser.is_active ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>
+                                            <ShieldCheck className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black dark:text-white uppercase tracking-wider">Estado Activo</p>
+                                        </div>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={isEditingUser.is_active}
+                                            onChange={e => setIsEditingUser({ ...isEditingUser, is_active: e.target.checked })}
+                                        />
+                                        <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isEditing}
+                                className="w-full mt-8 py-5 rounded-2xl font-black bg-liceo-primary dark:bg-white text-white dark:text-[#0B1526] hover:opacity-90 flex justify-center items-center gap-2 shadow-xl tracking-[0.2em] transition-all disabled:opacity-50 text-xs"
+                            >
+                                {isEditing ? <Loader2 className="w-6 h-6 animate-spin" /> : 'GUARDAR CAMBIOS'}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}

@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { isStaff } from '@/utils/roles'
 import DashboardClient from './dashboard-client'
 
 export default async function DashboardPage() {
@@ -20,8 +21,8 @@ export default async function DashboardPage() {
         redirect('/dashboard/profile')
     }
 
-    // Redirigir si es padre y no tiene rol de staff
-    if (profile?.is_parent && profile?.role !== 'Administrador' && profile?.role !== 'Entrenador' && profile?.role !== 'Admin' && profile?.role !== 'Manager') {
+    // Redirigir si es padre y NO tiene rol de staff
+    if (profile?.is_parent && !isStaff(profile?.role)) {
         redirect('/dashboard/parent')
     }
 

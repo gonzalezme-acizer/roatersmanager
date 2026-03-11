@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { isStaff } from '@/utils/roles'
 
 export default async function DashboardRedirect() {
     const supabase = await createClient()
@@ -22,9 +23,7 @@ export default async function DashboardRedirect() {
     }
 
     // Lógica de redirección por defecto según el rol principal
-    const isStaffRole = profile.role === 'Admin' || profile.role === 'Administrador' || profile.role === 'Entrenador' || profile.role === 'Staff' || profile.role === 'Manager'
-
-    if (isStaffRole) {
+    if (isStaff(profile.role)) {
         redirect('/dashboard/staff')
     } else {
         redirect('/dashboard/parent')

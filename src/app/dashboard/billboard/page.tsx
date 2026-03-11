@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { isStaff } from '@/utils/roles'
 import BillboardClient from './billboard-client'
 
 export const dynamic = 'force-dynamic'
@@ -24,8 +25,7 @@ export default async function BillboardPage() {
         .from('billboard_posts')
         .select('*, profiles:author_id(full_name, image_url)')
 
-    const staffRoles = ['Admin', 'Manager', 'Staff', 'Administrador', 'Entrenador', 'Preparador Físico']
-    const isStaff = staffRoles.includes(profile?.role || '')
+    const isStaffUser = isStaff(profile?.role)
 
     if (profile?.role === 'Padres') {
         query = query.eq('category', 'publico')

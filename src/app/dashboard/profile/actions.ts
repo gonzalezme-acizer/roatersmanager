@@ -135,3 +135,68 @@ export async function updatePasswordAction(oldPassword: string, newPassword: str
     await supabase.from('profiles').update({ force_password_change: false }).eq('id', user.id)
     return { success: true }
 }
+
+export async function updateUserAdminAction(formData: {
+    userId: string,
+    full_name: string,
+    role: string,
+    phone: string,
+    is_parent: boolean,
+    is_active: boolean
+}) {
+    const supabase = await createClient()
+
+    // 1. Validar que quien llama sea Admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autenticado' }
+
+    const { data: adminProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (adminProfile?.role !== 'Admin') return { error: 'No tenés permisos de Admin' }
+
+    // 2. Actualizar el Perfil
+    const { error: profileError } = await supabase.from('profiles').update({
+        full_name: formData.full_name,
+        role: formData.role,
+        phone: formData.phone,
+        is_parent: formData.is_parent,
+        is_active: formData.is_active
+    }).eq('id', formData.userId)
+
+    if (profileError) return { error: profileError.message }
+
+    revalidatePath('/dashboard/staff')
+    return { success: true }
+}
+
+export async function deleteUserAdminAction(userId: string) {
+    const supabase = await createClient()
+
+    // 1. Validar que quien llama sea Admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autenticado' }
+
+    const { data: adminProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (adminProfile?.role !== 'Admin') return { error: 'No tenés permisos de Admin' }
+
+    // No permitir borrarse a sí mismo por error (opcional pero seguro)
+    if (user.id === userId) return { error: 'No podés borrarte a vos mismo' }
+
+    // 2. Borrar del perfil (Esto es simple si es Mock)
+    // Si es real, el borrado de Auth requiere Service Role Key. 
+    // Por ahora borramos el perfil. Si tiene Auth, quedará el "orphaned" user en Auth a menos que usemos adminClient.
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (serviceRoleKey) {
+        const adminClient = createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            serviceRoleKey
+        )
+        // Intentar borrar de Auth primero
+        await adminClient.auth.admin.deleteUser(userId)
+    }
+
+    const { error } = await supabase.from('profiles').delete().eq('id', userId)
+    if (error) return { error: error.message }
+
+    revalidatePath('/dashboard/staff')
+    return { success: true }
+}
