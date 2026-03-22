@@ -235,17 +235,17 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
                             <div className="absolute bottom-0 left-0 w-40 h-40 bg-liceo-primary/20 rounded-full blur-[60px] -ml-20 -mb-20"></div>
 
                             <div className="relative flex flex-col md:flex-row gap-8 items-center text-center md:text-left">
-                                <div className="w-36 h-36 rounded-3xl border-2 border-liceo-gold/30 p-2 flex-shrink-0 bg-white/5 backdrop-blur-sm shadow-xl transform group-hover:rotate-2 transition-transform duration-500 relative">
-                                    <div className="w-full h-full rounded-2xl bg-gradient-to-tr from-liceo-primary/40 to-transparent flex items-center justify-center overflow-hidden">
+                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-liceo-gold/40 p-2 flex-shrink-0 bg-white/5 backdrop-blur-sm shadow-[0_0_40px_rgba(197,160,89,0.15)] transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-700 relative z-10">
+                                    <div className="w-full h-full rounded-full bg-gradient-to-tr from-liceo-primary/40 to-transparent flex items-center justify-center overflow-hidden border border-white/10 relative">
                                         {activeChild.image_url ? (
                                             <Image
                                                 src={activeChild.image_url}
                                                 alt={activeChild.first_name}
                                                 fill
-                                                className="object-cover"
+                                                className="object-cover transition-transform duration-700 group-hover:scale-110"
                                             />
                                         ) : (
-                                            <Users className="w-20 h-20 text-white/20" />
+                                            <Users className="w-24 h-24 md:w-28 md:h-28 text-white/20 transition-transform duration-700 group-hover:scale-110 group-hover:text-liceo-gold/20" />
                                         )}
                                     </div>
                                 </div>
