@@ -20,6 +20,9 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
             event_attendance (
                 *,
                 events:event_id (status, event_type)
+            ),
+            player_messages (
+                *
             )
         `)
         .eq('id', id)

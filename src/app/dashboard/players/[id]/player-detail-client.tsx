@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useLang } from '@/components/lang-provider'
-import { ChevronLeft, Save, Edit3, User, Activity, Phone, AlignLeft, Shield, AlertCircle, Camera, Loader2, Star, Plus, Trash2, X, CalendarDays, Trophy } from 'lucide-react'
+import { ChevronLeft, Save, Edit3, User, Activity, Phone, AlignLeft, Shield, AlertCircle, Camera, Loader2, Star, Plus, Trash2, X, CalendarDays, Trophy, MessageCircle, Send } from 'lucide-react'
 import Link from 'next/link'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '@/utils/cropImage'
+import { showSuccessToast, showErrorToast } from '@/utils/toast'
 
 const FORWARDS_POSITIONS = ["Pilar", "Hooker", "Segunda línea", "Ala", "Octavo"]
 const BACKS_POSITIONS = ["Medio Scrum", "Apertura", "Primer Centro", "Segundo Centro", "Wing", "Full Back"]
@@ -23,6 +24,10 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
     const [uploadingImage, setUploadingImage] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [player, setPlayer] = useState(initialPlayer)
+    
+    // Messages state
+    const [newMessage, setNewMessage] = useState('')
+    const [isSendingMessage, setIsSendingMessage] = useState(false)
 
     const isAdminOrManager = userRole === 'Admin' || userRole === 'Manager' || userRole === 'Administrador'
 
@@ -262,6 +267,48 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
         } else {
             setIsEditing(false)
             router.refresh()
+        }
+    }
+
+    const onCropComplete = (croppedArea: any, croppedAreaPixels: any) => {
+        setCroppedAreaPixels(croppedAreaPixels)
+    }
+
+    const handleSendMessage = async () => {
+        if (!newMessage.trim()) return
+
+        setIsSendingMessage(true)
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('No auth user')
+
+            const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+
+            const newMsgObj = {
+                player_id: player.id,
+                sender_id: user.id,
+                sender_name: profile?.full_name || 'Staff',
+                content: newMessage.trim()
+            }
+
+            const { data, error: sendError } = await supabase.from('player_messages').insert([newMsgObj]).select()
+            
+            if (sendError) throw sendError
+
+            // Optionally notify parent (would require Edge Function or a notification table, skipped for now to keep it simple)
+
+            // Update local state
+            setPlayer({
+                ...player,
+                player_messages: [...(player.player_messages || []), data[0]]
+            })
+            setNewMessage('')
+            showSuccessToast('Mensaje Enviado', 'El mensaje ha sido posteado en el perfil del jugador.')
+        } catch (err: any) {
+            console.error(err)
+            showErrorToast('Error', 'No se pudo enviar el mensaje: ' + err.message)
+        } finally {
+            setIsSendingMessage(false)
         }
     }
 
@@ -596,6 +643,53 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
                                 <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/10 shadow-sm">
                                     <div className="flex items-center gap-2"><Activity className="w-4 h-4 text-emerald-500" /><span className="text-sm font-bold text-gray-800 dark:text-white">Entrenamientos</span></div>
                                     <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{attendanceStats.training}% ({attendanceStats.trainingPresent}/{attendanceStats.trainingCount})</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Mensajes Directos (Staff to Player) */}
+                    {!isEditing && (
+                        <div className="bg-white/70 dark:bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-lg">
+                            <h3 className="text-lg font-bold flex items-center gap-2 mb-6 border-b border-gray-100 dark:border-white/10 pb-4 text-gray-900 dark:text-white">
+                                <MessageCircle className="w-5 h-5 text-blue-400" />
+                                Mensajes al Jugador
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {player.player_messages && player.player_messages.length > 0 ? (
+                                        [...player.player_messages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).map((msg: any) => (
+                                            <div key={msg.id} className="bg-gray-50 dark:bg-white/5 p-3.5 rounded-2xl rounded-tl-sm border border-gray-100 dark:border-white/10 shadow-sm relative">
+                                                <div className="flex justify-between items-baseline mb-1">
+                                                    <span className="text-[10px] font-black uppercase text-liceo-primary dark:text-liceo-gold tracking-widest">{msg.sender_name || 'Staff'}</span>
+                                                    <span className="text-[9px] text-gray-400 font-bold">{new Date(msg.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'})}</span>
+                                                </div>
+                                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">{msg.content}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10">
+                                            <MessageCircle className="w-8 h-8 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                                            <p className="text-xs text-gray-500 font-bold tracking-tight">Aún no hay mensajes para {player.first_name}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="pt-2 flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleSendMessage() }}
+                                        placeholder="Escribir feedback o novedad para los padres..." 
+                                        className="flex-1 bg-white dark:bg-[#0B1526] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 text-xs md:text-sm font-medium text-gray-900 dark:text-white focus:ring-2 focus:ring-liceo-primary outline-none transition-all placeholder:text-gray-400"
+                                    />
+                                    <button 
+                                        onClick={handleSendMessage}
+                                        disabled={isSendingMessage || !newMessage.trim()}
+                                        className="bg-liceo-primary text-white p-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center shrink-0"
+                                    >
+                                        {isSendingMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                    </button>
                                 </div>
                             </div>
                         </div>

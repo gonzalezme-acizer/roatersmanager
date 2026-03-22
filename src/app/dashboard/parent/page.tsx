@@ -48,6 +48,9 @@ export default async function ParentDashboardPage() {
                     event_attendance (
                         *,
                         events:event_id(status, event_type)
+                    ),
+                    player_messages (
+                        *
                     )
             `)
             .in('id', childIds)

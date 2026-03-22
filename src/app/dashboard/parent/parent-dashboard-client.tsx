@@ -420,6 +420,37 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
                     {/* Right Column: Billboard & Alerts */}
                     <div className="space-y-8">
 
+                        {/* Mensajes del Staff */}
+                        <div className="bg-white dark:bg-[#111f38] rounded-[2.5rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-liceo-primary/5 dark:bg-liceo-gold/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                            
+                            <div className="flex items-center justify-between mb-8 relative z-10">
+                                <div className="flex items-center gap-3">
+                                    <MessageSquare className="w-5 h-5 text-blue-500" />
+                                    <h3 className="font-black text-liceo-primary dark:text-liceo-gold uppercase text-xs tracking-widest">Feed del Staff</h3>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 relative z-10 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                                {activeChild.player_messages && activeChild.player_messages.length > 0 ? (
+                                    [...activeChild.player_messages].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((msg: any) => (
+                                        <div key={msg.id} className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl rounded-tr-sm border border-gray-100 dark:border-white/10 shadow-sm">
+                                            <div className="flex justify-between items-baseline mb-2">
+                                                <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest">{msg.sender_name || 'Staff'}</span>
+                                                <span className="text-[9px] text-gray-400 font-bold">{new Date(msg.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}</span>
+                                            </div>
+                                            <p className="text-xs font-medium text-gray-800 dark:text-gray-200 leading-relaxed">{msg.content}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-6 text-gray-400 space-y-2 bg-gray-50 dark:bg-white/5 rounded-2xl">
+                                        <MessageSquare className="w-6 h-6 mx-auto opacity-20" />
+                                        <p className="text-[10px] font-bold uppercase italic">Sin feedback reciente</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Billboard Preview */}
                         <div className="bg-white dark:bg-[#111f38] rounded-[2.5rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl">
                             <div className="flex items-center justify-between mb-8">
