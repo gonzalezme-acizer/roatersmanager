@@ -354,10 +354,12 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
             )}
 
             {/* Main Profile Header */}
-            <div className="bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 shadow-xl rounded-3xl p-6 md:p-8 flex items-center gap-6 relative overflow-hidden group">
+            <div className="bg-white/80 dark:bg-[#0A1628] backdrop-blur-xl border border-gray-200 dark:border-white/10 shadow-xl rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative overflow-hidden group">
+                {/* Visual Glow */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-liceo-accent/10 rounded-full blur-3xl -mx-20 -my-20 opacity-50"></div>
 
-                <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-liceo-primary to-liceo-accent shrink-0 flex items-center justify-center text-white font-extrabold text-4xl shadow-xl border-4 border-white dark:border-[#001224] z-10 overflow-hidden group/avatar">
+                {/* Avatar / Photo */}
+                <div className="relative w-32 h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-tr from-liceo-primary to-liceo-accent shrink-0 flex items-center justify-center text-white font-extrabold text-5xl shadow-2xl border-[6px] border-white dark:border-[#0a213a] z-10 overflow-hidden group/avatar transition-transform duration-500 hover:scale-105">
                     {player.image_url ? (
                         <img src={player.image_url} alt={player.first_name} className="w-full h-full object-cover" />
                     ) : (
@@ -367,14 +369,14 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
                     {isEditing && (
                         <label
                             htmlFor="photo-upload"
-                            className="absolute inset-0 bg-black/50 opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity backdrop-blur-sm"
                         >
                             {uploadingImage ? (
-                                <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                <Loader2 className="w-10 h-10 text-white animate-spin" />
                             ) : (
                                 <>
                                     <Camera className="w-8 h-8 text-white mb-1 drop-shadow-md" />
-                                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Cambiar</span>
+                                    <span className="text-xs uppercase font-black text-white tracking-widest">Cambiar</span>
                                 </>
                             )}
                             <input
@@ -390,22 +392,31 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
                     )}
                 </div>
 
-                <div className="flex-1 z-10">
-                    <div className="flex items-center gap-3 mb-1">
-                        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-                            {player.first_name} {player.last_name}
-                        </h1>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm border ${player.status === 'Activo' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30' :
+                {/* Player Information */}
+                <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left z-10 w-full">
+                    {/* Status Badge */}
+                    <div className="mb-3">
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border ${
+                            player.status === 'Activo' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30' :
                             player.status === 'Lesionado' ? 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30' :
-                                'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30'
-                            }`}>
-                            {player.status}
+                            'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30'
+                        }`}>
+                            {player.status || 'Sin Estado'}
                         </span>
                     </div>
-                    {player.nickname && <p className="text-lg text-gray-500 dark:text-gray-400 font-medium italic mb-3">"{player.nickname}"</p>}
-                    <p className="inline-flex items-center px-4 py-1.5 bg-gray-100 dark:bg-white/10 rounded-lg text-sm font-bold text-liceo-primary dark:text-liceo-gold">
-                        {player.position || 'Sin Posición'} • {player.category || 'M13'}
-                    </p>
+
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-gray-900 dark:text-white leading-none mb-1">
+                        <span className="block">{player.first_name.toUpperCase()}</span>
+                        <span className="block">{player.last_name.toUpperCase()}</span>
+                    </h1>
+                    
+                    {player.nickname && <p className="text-xl md:text-2xl text-liceo-primary/60 dark:text-gray-400 font-bold italic mt-2 mb-4">"{player.nickname}"</p>}
+                    
+                    <div className="mt-auto pt-4 w-full md:w-auto">
+                        <p className="inline-flex w-full md:w-auto items-center justify-center md:justify-start px-5 py-2.5 bg-gray-100/80 dark:bg-white/5 rounded-xl text-sm font-black text-liceo-primary dark:text-[#5EE5F8] border border-gray-200 dark:border-white/10 shadow-inner">
+                            {player.position || 'Sin Posición'} <span className="mx-3 opacity-30">•</span> {player.category || 'M13'}
+                        </p>
+                    </div>
                 </div>
             </div>
 
