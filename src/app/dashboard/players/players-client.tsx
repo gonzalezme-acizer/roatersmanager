@@ -190,21 +190,21 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
                         </span>
                     </div>
                     <div className="grid grid-cols-4 gap-2">
-                        <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Activos</p>
-                            <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">{fwStats.activos}</p>
+                        <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Activos</p>
+                            <p className="text-lg sm:text-xl font-black text-emerald-700 dark:text-emerald-300">{fwStats.activos}</p>
                         </div>
-                        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-1">Lesionados</p>
-                            <p className="text-xl font-black text-rose-700 dark:text-rose-300">{fwStats.lesionados}</p>
+                        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Lesionados</p>
+                            <p className="text-lg sm:text-xl font-black text-rose-700 dark:text-rose-300">{fwStats.lesionados}</p>
                         </div>
-                        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">Suspendidos</p>
-                            <p className="text-xl font-black text-amber-700 dark:text-amber-300">{fwStats.suspendidos}</p>
+                        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Suspendidos</p>
+                            <p className="text-lg sm:text-xl font-black text-amber-700 dark:text-amber-300">{fwStats.suspendidos}</p>
                         </div>
-                        <div className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Inactivos</p>
-                            <p className="text-xl font-black text-gray-600 dark:text-gray-400">{fwStats.abandonados}</p>
+                        <div className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Inactivos</p>
+                            <p className="text-lg sm:text-xl font-black text-gray-600 dark:text-gray-400">{fwStats.abandonados}</p>
                         </div>
                     </div>
                 </div>
@@ -221,21 +221,21 @@ export default function PlayersClient({ initialPlayers }: { initialPlayers: Play
                         </span>
                     </div>
                     <div className="grid grid-cols-4 gap-2">
-                        <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Activos</p>
-                            <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">{bkStats.activos}</p>
+                        <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Activos</p>
+                            <p className="text-lg sm:text-xl font-black text-emerald-700 dark:text-emerald-300">{bkStats.activos}</p>
                         </div>
-                        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-1">Lesionados</p>
-                            <p className="text-xl font-black text-rose-700 dark:text-rose-300">{bkStats.lesionados}</p>
+                        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Lesionados</p>
+                            <p className="text-lg sm:text-xl font-black text-rose-700 dark:text-rose-300">{bkStats.lesionados}</p>
                         </div>
-                        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">Suspendidos</p>
-                            <p className="text-xl font-black text-amber-700 dark:text-amber-300">{bkStats.suspendidos}</p>
+                        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Suspendidos</p>
+                            <p className="text-lg sm:text-xl font-black text-amber-700 dark:text-amber-300">{bkStats.suspendidos}</p>
                         </div>
-                        <div className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-2 text-center">
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Inactivos</p>
-                            <p className="text-xl font-black text-gray-600 dark:text-gray-400">{bkStats.abandonados}</p>
+                        <div className="bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-1.5 sm:p-2 text-center">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-tight sm:tracking-wider mb-1 truncate">Inactivos</p>
+                            <p className="text-lg sm:text-xl font-black text-gray-600 dark:text-gray-400">{bkStats.abandonados}</p>
                         </div>
                     </div>
                 </div>
