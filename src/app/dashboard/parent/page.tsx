@@ -37,7 +37,7 @@ export default async function ParentDashboardPage() {
     // 4. Obtener datos de los hijos si existen
     let childrenData: any[] = []
     if (childIds.length > 0) {
-        // Obtenemos los jugadores y sus relaciones
+        // Obtenemos los jugadores y sus relaciones base
         const { data: players, error: playerError } = await supabase
             .from('players')
             .select(`
@@ -45,17 +45,26 @@ export default async function ParentDashboardPage() {
                 skills (
                     *
                 ),
-                    event_attendance (
-                        *,
-                        events:event_id(status, event_type)
-                    ),
-                    player_messages (
-                        *
-                    )
+                event_attendance (
+                    *,
+                    events:event_id(status, event_type)
+                )
             `)
             .in('id', childIds)
 
+        const { data: messages } = await supabase
+            .from('player_messages')
+            .select('*')
+            .in('player_id', childIds)
+
         childrenData = players || []
+        
+        if (messages && childrenData.length > 0) {
+            childrenData = childrenData.map((player: any) => ({
+                ...player,
+                player_messages: messages.filter((m: any) => m.player_id === player.id)
+            }))
+        }
     }
 
     // 5. Obtener comunicados públicos

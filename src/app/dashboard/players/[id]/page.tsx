@@ -20,17 +20,28 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
             event_attendance (
                 *,
                 events:event_id (status, event_type)
-            ),
-            player_messages (
-                *
             )
         `)
         .eq('id', id)
         .single()
 
     if (error || !player) {
+        console.error("Error fetching player:", error)
         redirect('/dashboard/players')
     }
+
+    // Attempt to fetch messages separately so it doesn't crash if the table is missing
+    const { data: messages } = await supabase
+        .from('player_messages')
+        .select('*')
+        .eq('player_id', id)
+        .order('created_at', { ascending: true })
+        
+    if (player && messages) {
+        player.player_messages = messages
+    }
+
+
 
     // Fetch latest skills
     const { data: skills } = await supabase
