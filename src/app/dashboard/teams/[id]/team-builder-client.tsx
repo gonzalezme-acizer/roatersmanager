@@ -349,9 +349,9 @@ export default function TeamBuilderClient({ initialTeam, allPlayers, allTeams }:
 
             {/* SELECTION MODAL */}
             {activeNode && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm dark:backdrop-blur-md pb-0 sm:p-4 animate-in fade-in">
-                    <div className="bg-white dark:bg-[#0A1628] w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl border border-gray-200 dark:border-white/10 shadow-2xl dark:shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[90vh] overflow-hidden">
-                        <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50 dark:bg-[#102035]">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm dark:backdrop-blur-md pb-0 sm:p-4 animate-in fade-in">
+                    <div className="bg-white dark:bg-[#0A1628] w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl border border-gray-200 dark:border-white/10 shadow-2xl dark:shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col h-[85vh] sm:h-auto sm:max-h-[90vh] overflow-hidden">
+                        <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50 dark:bg-[#102035] flex-shrink-0">
                             <div>
                                 <h3 className="text-lg font-black text-gray-900 dark:text-white">Select Player</h3>
                                 <p className="text-xs text-liceo-primary dark:text-[#5EE5F8] tracking-widest font-bold">POSITION: {activeNode.name}</p>
@@ -376,17 +376,31 @@ export default function TeamBuilderClient({ initialTeam, allPlayers, allTeams }:
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {allPlayers
-                                .filter(p => !usedPlayerIds.has(p.id))
-                                .filter(p => p.status === 'Activo')
-                                .filter(p => normalizeText(`${p.first_name || ''} ${p.last_name || ''} ${p.position || ''}`).includes(normalizeText(searchTerm)))
-                                .sort((a, b) => {
-                                    const wA = POSITIONS_ORDER.indexOf(a.position) === -1 ? 99 : POSITIONS_ORDER.indexOf(a.position)
-                                    const wB = POSITIONS_ORDER.indexOf(b.position) === -1 ? 99 : POSITIONS_ORDER.indexOf(b.position)
-                                    if (wA !== wB) return wA - wB
-                                    return a.last_name.localeCompare(b.last_name)
-                                })
-                                .map(p => {
+                            {(() => {
+                                const filteredPlayers = allPlayers
+                                    .filter(p => !usedPlayerIds.has(p.id))
+                                    .filter(p => p.status === 'Activo')
+                                    .filter(p => normalizeText(`${p.first_name || ''} ${p.last_name || ''} ${p.position || ''}`).includes(normalizeText(searchTerm)))
+                                    .sort((a, b) => {
+                                        const wA = POSITIONS_ORDER.indexOf(a.position) === -1 ? 99 : POSITIONS_ORDER.indexOf(a.position)
+                                        const wB = POSITIONS_ORDER.indexOf(b.position) === -1 ? 99 : POSITIONS_ORDER.indexOf(b.position)
+                                        if (wA !== wB) return wA - wB
+                                        return a.last_name.localeCompare(b.last_name)
+                                    });
+
+                                if (filteredPlayers.length === 0) {
+                                    return (
+                                        <div className="text-center py-12 px-4 text-gray-500 flex flex-col items-center gap-3">
+                                            <Shield className="w-12 h-12 opacity-20" />
+                                            <div>
+                                                <p className="font-bold text-sm">No hay jugadores disponibles.</p>
+                                                <p className="text-xs mt-1">Es posible que estén todos asignados, lesionados o suspendidos.</p>
+                                            </div>
+                                        </div>
+                                    )
+                                }
+
+                                return filteredPlayers.map(p => {
                                     const otherTeam = playerToTeamMap.get(p.id)
                                     return (
                                         <button
@@ -416,13 +430,8 @@ export default function TeamBuilderClient({ initialTeam, allPlayers, allTeams }:
                                             </div>
                                         </button>
                                     )
-                                })}
-
-                            {allPlayers.filter(p => !usedPlayerIds.has(p.id)).length === 0 && (
-                                <div className="text-center py-10 text-gray-500 font-bold text-sm">
-                                    Todos los jugadores están asignados.
-                                </div>
-                            )}
+                                })
+                            })()}
                         </div>
                     </div>
                 </div>
