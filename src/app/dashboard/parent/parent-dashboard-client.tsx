@@ -235,8 +235,16 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
                             <div className="absolute bottom-0 left-0 w-40 h-40 bg-liceo-primary/20 rounded-full blur-[60px] -ml-20 -mb-20"></div>
 
                             <div className="relative flex flex-col md:flex-row gap-8 items-center text-center md:text-left">
-                                <div className="w-48 h-48 md:w-56 md:h-56 rounded-full border-4 border-liceo-gold/40 p-2 flex-shrink-0 bg-white/5 backdrop-blur-sm shadow-[0_0_40px_rgba(197,160,89,0.15)] transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-700 relative z-10">
-                                    <div className="w-full h-full rounded-full bg-gradient-to-tr from-liceo-primary/40 to-transparent flex items-center justify-center overflow-hidden border border-white/10 relative">
+                                <div className={`w-48 h-48 md:w-56 md:h-56 rounded-full border-[5px] p-2 flex-shrink-0 bg-white/5 backdrop-blur-sm transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-700 relative z-10 ${
+                                    activeChild.status === 'Activo' 
+                                        ? 'border-green-500/80 shadow-[0_0_40px_rgba(34,197,94,0.3)]' 
+                                        : activeChild.status === 'Lesionado' 
+                                            ? 'border-orange-500/80 shadow-[0_0_40px_rgba(249,115,22,0.3)]' 
+                                            : activeChild.status && ['Suspendido', 'Inactivo', 'Cancelado'].includes(activeChild.status)
+                                                ? 'border-gray-500/80 shadow-[0_0_40px_rgba(107,114,128,0.3)] grayscale'
+                                                : 'border-liceo-gold/60 shadow-[0_0_40px_rgba(197,160,89,0.2)]'
+                                }`}>
+                                    <div className="w-full h-full rounded-full bg-gradient-to-tr from-black/40 to-transparent flex items-center justify-center overflow-hidden border border-white/10 relative">
                                         {activeChild.image_url ? (
                                             <Image
                                                 src={activeChild.image_url}
