@@ -1,6 +1,6 @@
 'use client'
 
-import { Users, TrendingUp, ShieldAlert, Award, ChevronRight, Activity, ActivitySquare } from 'lucide-react'
+import { Users, TrendingUp, ShieldAlert, Award, ChevronRight, Activity, ActivitySquare, Cake } from 'lucide-react'
 import Link from 'next/link'
 import { useLang } from '@/components/lang-provider'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
@@ -11,6 +11,34 @@ export default function DashboardClient({ players, events, attendance }: { playe
 
     const activePlayers = useMemo(() => players.filter(p => p.status === 'Activo'), [players])
     const totalPlayers = activePlayers.length
+
+    // Calculate Birthdays
+    const upcomingBirthdays = useMemo(() => {
+        const today = new Date()
+        today.setHours(0,0,0,0)
+        
+        return activePlayers.map(p => {
+            if (!p.birth_date) return null
+            const [y, m, d] = p.birth_date.split('-')
+            const birthMonth = parseInt(m) - 1
+            const birthDay = parseInt(d)
+            
+            let bday = new Date(today.getFullYear(), birthMonth, birthDay, 0, 0, 0)
+            
+            // Si el cumpleaños de este año ya pasó, el próximo es el año que viene
+            if (bday.getTime() < today.getTime()) {
+                bday = new Date(today.getFullYear() + 1, birthMonth, birthDay, 0, 0, 0)
+            }
+            
+            const diffDays = Math.round((bday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+            
+            if (diffDays <= 15) {
+                return { ...p, daysToBirthday: diffDays }
+            }
+            return null
+        }).filter(Boolean).sort((a: any, b: any) => a.daysToBirthday - b.daysToBirthday)
+    }, [activePlayers])
+
 
     // Calculate Radar Data
     const aggregateSkills = useMemo(() => {
@@ -304,9 +332,45 @@ export default function DashboardClient({ players, events, attendance }: { playe
                     </div>
                 </section>
 
-                {/* Key Players Sidebar */}
+                {/* Sidebar (Right Column) */}
                 <section className="space-y-6">
-                    <div className="bg-white/70 dark:bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-xl h-full flex flex-col">
+                    {/* Upcoming Birthdays */}
+                    {upcomingBirthdays.length > 0 && (
+                        <div className="bg-white/70 dark:bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-xl">
+                            <h2 className="text-xl font-bold flex items-center gap-3 mb-6">
+                                <Cake className="w-5 h-5 text-rose-500" />
+                                Próximos Cumpleaños
+                            </h2>
+                            <div className="space-y-3">
+                                {upcomingBirthdays.map((player: any) => (
+                                    <Link href={`/dashboard/players/${player.id}`} key={player.id} className="group block">
+                                        <div className="p-3 rounded-2xl bg-rose-50/50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/10 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-400 to-rose-600 flex items-center justify-center text-white font-bold text-sm shadow-md overflow-hidden shrink-0">
+                                                {player.image_url ? (
+                                                    <img src={player.image_url} alt={player.first_name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    player.first_name.charAt(0)
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors line-clamp-1">{player.first_name} {player.last_name}</p>
+                                                <p className="text-xs text-rose-600/80 dark:text-rose-300/80 font-medium">
+                                                    {player.daysToBirthday === 0 ? '¡Hoy!' : 
+                                                     player.daysToBirthday === 1 ? 'Mañana' : 
+                                                     `En ${player.daysToBirthday} días`} 
+                                                    <span className="opacity-50 mx-1.5">•</span> 
+                                                    {player.birth_date.split('-').reverse().slice(0,2).join('/')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Key Players Sidebar */}
+                    <div className="bg-white/70 dark:bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-xl h-fit flex flex-col">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold flex items-center gap-3">
                                 <Award className="w-5 h-5 text-amber-500" />
@@ -316,7 +380,7 @@ export default function DashboardClient({ players, events, attendance }: { playe
 
                         <div className="flex-1 space-y-4">
                             {keyPlayers.map((player) => (
-                                <Link href="/dashboard/players" key={player.name} className="block group">
+                                <Link href={`/dashboard/players/${player.id}`} key={player.name} className="block group">
                                     <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-transparent hover:border-liceo-accent/50 hover:bg-white dark:hover:bg-white/10 transition-all flex items-center justify-between cursor-pointer">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-liceo-primary to-liceo-accent flex items-center justify-center text-white font-bold text-sm shadow-md overflow-hidden shrink-0">
