@@ -2,6 +2,9 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import ParentDashboardClient from './parent-dashboard-client'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function ParentDashboardPage() {
     const supabase = await createClient()
 
