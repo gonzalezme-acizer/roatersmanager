@@ -88,7 +88,7 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
     // Resumen de asistencia
     const attendanceSummary = useMemo(() => {
         if (!activeChild?.event_attendance) return { present: 0, absent: 0, late: 0, total: 0 }
-        const att = activeChild.event_attendance
+        const att = activeChild.event_attendance.filter((a: any) => a.events?.status !== 'Cancelado')
         return {
             present: att.filter((a: any) => a.status === 'Presente').length,
             absent: att.filter((a: any) => a.status === 'Ausente').length,

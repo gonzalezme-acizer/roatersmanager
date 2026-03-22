@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { useLang } from '@/components/lang-provider'
-import { ChevronLeft, Save, Edit3, User, Activity, Phone, AlignLeft, Shield, AlertCircle, Camera, Loader2, Star, Plus, Trash2, X } from 'lucide-react'
+import { ChevronLeft, Save, Edit3, User, Activity, Phone, AlignLeft, Shield, AlertCircle, Camera, Loader2, Star, Plus, Trash2, X, CalendarDays, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import Cropper from 'react-easy-crop'
@@ -39,6 +39,43 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
         line_out: initialSkills?.line_out ?? 1, scrum: initialSkills?.scrum ?? 1, attack: initialSkills?.attack ?? 1, defense: initialSkills?.defense ?? 1, mentality: initialSkills?.mentality ?? 1,
         patada: initialSkills?.patada ?? 1, duelo: initialSkills?.duelo ?? 1
     })
+
+    const { useMemo } = require('react')
+
+    const attendanceStats = useMemo(() => {
+        if (!player.event_attendance) return null
+
+        let matchCount = 0
+        let matchPresent = 0
+        let trainingCount = 0
+        let trainingPresent = 0
+
+        player.event_attendance.forEach((att: any) => {
+            if (att.events?.status === 'Cancelado') return
+            if (!['Presente', 'Ausente', 'Tarde', 'Justificado', 'Titular', 'Suplente'].includes(att.status)) return
+
+            const isMatch = att.events?.event_type === 'Partido'
+            const isPresent = ['Presente', 'Titular', 'Suplente'].includes(att.status)
+            
+            if (isMatch) {
+                matchCount++
+                if (isPresent) matchPresent++
+            } else {
+                trainingCount++
+                if (isPresent) trainingPresent++
+            }
+        })
+
+        const totalCount = matchCount + trainingCount
+        const totalPresent = matchPresent + trainingPresent
+
+        return {
+            match: matchCount ? Math.round((matchPresent / matchCount) * 100) : 0,
+            training: trainingCount ? Math.round((trainingPresent / trainingCount) * 100) : 0,
+            total: totalCount ? Math.round((totalPresent / totalCount) * 100) : 0,
+            matchPresent, matchCount, trainingPresent, trainingCount, totalPresent, totalCount
+        }
+    }, [player.event_attendance])
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -543,6 +580,26 @@ export default function PlayerDetailClient({ initialPlayer, initialSkills, userR
                             )}
                         </div>
                     </div>
+
+                    {/* Attendance Info */}
+                    {!isEditing && attendanceStats && (
+                        <div className="bg-white/70 dark:bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-lg">
+                            <h3 className="text-lg font-bold flex items-center gap-2 mb-6 border-b border-gray-100 dark:border-white/10 pb-4 text-gray-900 dark:text-white">
+                                <CalendarDays className="w-5 h-5 text-purple-500" />
+                                Presencialidad Total ({attendanceStats.total}%)
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/10 shadow-sm">
+                                    <div className="flex items-center gap-2"><Trophy className="w-4 h-4 text-liceo-primary dark:text-liceo-gold" /><span className="text-sm font-bold text-gray-800 dark:text-white">Partidos</span></div>
+                                    <span className="text-sm font-black text-liceo-primary dark:text-[#5EE5F8]">{attendanceStats.match}% ({attendanceStats.matchPresent}/{attendanceStats.matchCount})</span>
+                                </div>
+                                <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/10 shadow-sm">
+                                    <div className="flex items-center gap-2"><Activity className="w-4 h-4 text-emerald-500" /><span className="text-sm font-bold text-gray-800 dark:text-white">Entrenamientos</span></div>
+                                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{attendanceStats.training}% ({attendanceStats.trainingPresent}/{attendanceStats.trainingCount})</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Column 3: Custom Features / Radar */}

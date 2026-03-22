@@ -455,7 +455,7 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                                                     <Shield className="w-6 h-6 text-gray-300 dark:text-white/20 flex-1" />
                                                 )}
                                             </div>
-                                            <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
+                                            <div className={`text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold ${ev.status === 'Cancelado' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
                                                 {ev.status}
                                             </div>
                                         </div>
@@ -508,7 +508,7 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-3 mb-1">
-                                                    <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">
+                                                    <div className={`text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold ${ev.status === 'Cancelado' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
                                                         {ev.status}
                                                     </div>
                                                     <p suppressHydrationWarning className="text-xs text-liceo-primary dark:text-[#5EE5F8] font-bold flex items-center gap-1.5">

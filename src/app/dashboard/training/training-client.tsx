@@ -428,12 +428,12 @@ export default function TrainingClient({ initialEvents, initialDrills, coaches, 
                 <div className={eventsLayout === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
                     {events.map((ev: any) => {
                         const isPast = new Date(ev.event_date + 'T' + (ev.event_time || '00:00')) < new Date()
-                        const statusToDisplay = isPast ? 'Completo' : ev.status
+                        const statusToDisplay = ev.status === 'Cancelado' ? 'Cancelado' : (isPast ? 'Completo' : ev.status)
                         const attendees = attendanceCounts[ev.id] || 0
 
                         return eventsLayout === 'grid' ? (
                             <div key={ev.id} className="bg-white/80 dark:bg-[#0B1526]/80 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all flex flex-col relative group">
-                                <div className={`absolute top-4 right-4 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold ${isPast ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
+                                <div className={`absolute top-4 right-4 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold ${ev.status === 'Cancelado' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : isPast ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
                                     {statusToDisplay}
                                 </div>
                                 <div className="pr-16 mb-1">
@@ -479,7 +479,7 @@ export default function TrainingClient({ initialEvents, initialDrills, coaches, 
                             <div key={ev.id} className="bg-white dark:bg-[#0B1526] border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-1">
-                                        <div className={`text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold ${isPast ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
+                                        <div className={`text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold ${ev.status === 'Cancelado' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : isPast ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
                                             {statusToDisplay}
                                         </div>
                                         <p suppressHydrationWarning className="text-xs text-gray-500 dark:text-gray-400 font-bold flex items-center gap-1.5">

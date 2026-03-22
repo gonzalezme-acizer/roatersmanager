@@ -15,7 +15,13 @@ export default async function PlayerDetailPage({ params }: { params: Promise<{ i
     // Fetch player data
     const { data: player, error } = await supabase
         .from('players')
-        .select('*')
+        .select(`
+            *,
+            event_attendance (
+                *,
+                events:event_id (status, event_type)
+            )
+        `)
         .eq('id', id)
         .single()
 

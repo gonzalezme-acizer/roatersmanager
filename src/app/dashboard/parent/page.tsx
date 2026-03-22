@@ -43,7 +43,8 @@ export default async function ParentDashboardPage() {
                     *
                 ),
                 event_attendance (
-                    *
+                    *,
+                    events:event_id(status)
                 )
             `)
             .in('id', childIds)

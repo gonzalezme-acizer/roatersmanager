@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large files and datasets
+/sql_archive
+/scripts_test
+*.xlsx
+*.csv

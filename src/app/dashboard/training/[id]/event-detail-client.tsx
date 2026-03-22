@@ -16,6 +16,7 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
     const [isAddingSlot, setIsAddingSlot] = useState(false)
     const [slotToDelete, setSlotToDelete] = useState<string | null>(null)
     const [isFinishingEvent, setIsFinishingEvent] = useState(false)
+    const [isCancellingEvent, setIsCancellingEvent] = useState(false)
     const [isSharing, setIsSharing] = useState(false)
     const [shareText, setShareText] = useState('')
     const [newSlot, setNewSlot] = useState({ slot_type: 'drill', drill_id: '', custom_title: 'Hidratación', duration_minutes: 15, division_criteria: '', coaches_assigned: [] as string[], teams_level_1: [] as string[], teams_level_2: [] as string[] })
@@ -54,7 +55,7 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
     // --- PLANIFICACION --- //
     const handleAddSlot = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (eventStatus === 'Completado') return;
+        if (['Completado', 'Cancelado'].includes(eventStatus)) return;
         setLoadingSlot(true)
         const selectedDrill = drills.find((d: any) => d.id === newSlot.drill_id)
 
@@ -94,7 +95,7 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
     }
 
     const confirmDeleteSlot = async () => {
-        if (!slotToDelete || eventStatus === 'Completado') return
+        if (!slotToDelete || ['Completado', 'Cancelado'].includes(eventStatus)) return
         await supabase.from('event_plan_slots').delete().eq('id', slotToDelete)
         setSlots(slots.filter(s => s.id !== slotToDelete))
         setSlotToDelete(null)
@@ -121,7 +122,7 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
 
     // --- ASISTENCIA --- //
     const handleAttendance = async (playerId: string, statusText: string) => {
-        if (eventStatus === 'Completado') return;
+        if (['Completado', 'Cancelado'].includes(eventStatus)) return;
 
         // Find existing record
         const existing = attendance.find(a => a.player_id === playerId)
@@ -145,7 +146,7 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
 
     // --- AWARDS --- //
     const handleSaveAward = async (teamId: string, type: 'motm' | 'tryman', playerId: string) => {
-        if (eventStatus === 'Completado') return;
+        if (['Completado', 'Cancelado'].includes(eventStatus)) return;
         const newAwards = {
             ...awards,
             [teamId]: {
@@ -162,7 +163,7 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
 
     // --- NOTAS --- //
     const handleSaveNote = async () => {
-        if (eventStatus === 'Completado') return;
+        if (['Completado', 'Cancelado'].includes(eventStatus)) return;
         if (!newNoteText.trim()) return
         setIsSavingNote(true)
 
@@ -194,6 +195,21 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
             showSuccessToast('Finalizado', 'El evento ha sido marcado como Completado.')
         } else {
             showErrorToast('Error', 'No se pudo finalizar el evento.')
+        }
+    }
+
+    const handleCancelEvent = () => {
+        setIsCancellingEvent(true)
+    }
+
+    const confirmCancelEvent = async () => {
+        const { error } = await supabase.from('events').update({ status: 'Cancelado' }).eq('id', event.id)
+        if (!error) {
+            setEventStatus('Cancelado')
+            setIsCancellingEvent(false)
+            showSuccessToast('Cancelado', 'El evento ha sido marcado como Cancelado.')
+        } else {
+            showErrorToast('Error', 'No se pudo cancelar el evento.')
         }
     }
 
@@ -337,10 +353,15 @@ Personalizar el trato con cada jugador.
                         </p>
                     </div>
                 </div>
-                {eventStatus !== 'Completado' && (
-                    <button onClick={handleFinishEvent} className="self-end md:self-auto bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-sm text-sm">
-                        <CheckCircle2 className="w-5 h-5" /> Finalizar Evento
-                    </button>
+                {eventStatus !== 'Completado' && eventStatus !== 'Cancelado' && (
+                    <div className="flex gap-2 self-end md:self-auto">
+                        <button onClick={handleCancelEvent} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-sm text-sm">
+                            <X className="w-5 h-5" /> Cancelar
+                        </button>
+                        <button onClick={handleFinishEvent} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-sm text-sm">
+                            <CheckCircle2 className="w-5 h-5" /> Finalizar Evento
+                        </button>
+                    </div>
                 )}
             </header>
 
@@ -373,7 +394,7 @@ Personalizar el trato con cada jugador.
                                 <button onClick={handleShareWhatsApp} className="flex-1 justify-center md:flex-none bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-md">
                                     <Share2 className="w-4 h-4 flex-shrink-0" /> WhatsApp
                                 </button>
-                                {eventStatus !== 'Completado' && (
+                                {!['Completado', 'Cancelado'].includes(eventStatus) && (
                                     <button onClick={() => setIsAddingSlot(true)} className="flex-1 justify-center md:flex-none bg-liceo-primary hover:bg-liceo-primary/90 text-white dark:bg-[#5EE5F8] dark:hover:bg-[#4bc8da] dark:text-[#061B30] px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-md">
                                         <Plus className="w-4 h-4 flex-shrink-0" /> Agregar
                                     </button>
@@ -393,7 +414,7 @@ Personalizar el trato con cada jugador.
                                     const isDrill = s.slot_type === 'drill' || !s.slot_type; // Fallback for old ones
                                     return (
                                         <div key={s.id} className={`border rounded-2xl p-5 shadow-sm flex items-start gap-4 flex-col md:flex-row relative group transition-colors ${!isDrill ? 'bg-blue-50/50 dark:bg-blue-500/5 border-blue-100 dark:border-blue-500/10' : 'bg-white dark:bg-[#102035] border-gray-200 dark:border-white/10'}`}>
-                                            {eventStatus !== 'Completado' && (
+                                            {!['Completado', 'Cancelado'].includes(eventStatus) && (
                                                 <button onClick={() => handleDeleteSlot(s.id)} className="absolute top-4 right-4 text-red-400 hover:text-red-500 bg-red-50 hover:bg-red-100 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity dark:bg-red-500/10 z-10">
                                                     <X className="w-4 h-4" />
                                                 </button>
@@ -547,20 +568,20 @@ Personalizar el trato con cada jugador.
                                                         <button
                                                             onClick={() => handleAttendance(p.id, 'Ausente')}
                                                             title="Ausente"
-                                                            disabled={eventStatus === 'Completado'}
-                                                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all border-2 flex items-center justify-center flex-shrink-0 ${currentStatus === 'Ausente' ? 'bg-red-500 border-red-500 shadow-md scale-110' : 'bg-transparent border-gray-300 dark:border-white/20 hover:border-red-400 dark:hover:border-red-500/50'} ${eventStatus === 'Completado' && currentStatus !== 'Ausente' ? 'opacity-20 cursor-not-allowed' : ''}`}
+                                                            disabled={['Completado', 'Cancelado'].includes(eventStatus)}
+                                                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all border-2 flex items-center justify-center flex-shrink-0 ${currentStatus === 'Ausente' ? 'bg-red-500 border-red-500 shadow-md scale-110' : 'bg-transparent border-gray-300 dark:border-white/20 hover:border-red-400 dark:hover:border-red-500/50'} ${['Completado', 'Cancelado'].includes(eventStatus) && currentStatus !== 'Ausente' ? 'opacity-20 cursor-not-allowed' : ''}`}
                                                         />
                                                         <button
                                                             onClick={() => handleAttendance(p.id, 'Tarde')}
                                                             title="Tarde"
-                                                            disabled={eventStatus === 'Completado'}
-                                                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all border-2 flex items-center justify-center flex-shrink-0 ${currentStatus === 'Tarde' ? 'bg-orange-500 border-orange-500 shadow-md scale-110' : 'bg-transparent border-gray-300 dark:border-white/20 hover:border-orange-400 dark:hover:border-orange-500/50'} ${eventStatus === 'Completado' && currentStatus !== 'Tarde' ? 'opacity-20 cursor-not-allowed' : ''}`}
+                                                            disabled={['Completado', 'Cancelado'].includes(eventStatus)}
+                                                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all border-2 flex items-center justify-center flex-shrink-0 ${currentStatus === 'Tarde' ? 'bg-orange-500 border-orange-500 shadow-md scale-110' : 'bg-transparent border-gray-300 dark:border-white/20 hover:border-orange-400 dark:hover:border-orange-500/50'} ${['Completado', 'Cancelado'].includes(eventStatus) && currentStatus !== 'Tarde' ? 'opacity-20 cursor-not-allowed' : ''}`}
                                                         />
                                                         <button
                                                             onClick={() => handleAttendance(p.id, 'Presente')}
                                                             title="Presente"
-                                                            disabled={eventStatus === 'Completado'}
-                                                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all border-2 flex items-center justify-center flex-shrink-0 ${currentStatus === 'Presente' ? 'bg-emerald-500 border-emerald-500 shadow-md scale-110' : 'bg-transparent border-gray-300 dark:border-white/20 hover:border-emerald-400 dark:hover:border-emerald-500/50'} ${eventStatus === 'Completado' && currentStatus !== 'Presente' ? 'opacity-20 cursor-not-allowed' : ''}`}
+                                                            disabled={['Completado', 'Cancelado'].includes(eventStatus)}
+                                                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all border-2 flex items-center justify-center flex-shrink-0 ${currentStatus === 'Presente' ? 'bg-emerald-500 border-emerald-500 shadow-md scale-110' : 'bg-transparent border-gray-300 dark:border-white/20 hover:border-emerald-400 dark:hover:border-emerald-500/50'} ${['Completado', 'Cancelado'].includes(eventStatus) && currentStatus !== 'Presente' ? 'opacity-20 cursor-not-allowed' : ''}`}
                                                         />
                                                     </div>
                                                 </td>
@@ -596,7 +617,7 @@ Personalizar el trato con cada jugador.
                                                             <Star className="w-3 h-3 text-yellow-500" /> Jugador de la Fecha
                                                         </label>
                                                         <select
-                                                            disabled={eventStatus === 'Completado'}
+                                                            disabled={['Completado', 'Cancelado'].includes(eventStatus)}
                                                             value={awards[teamId]?.motm || ''}
                                                             onChange={(e) => handleSaveAward(teamId, 'motm', e.target.value)}
                                                             className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 focus:outline-none focus:ring-2 focus:ring-liceo-primary text-sm font-semibold dark:text-white disabled:opacity-50"
@@ -613,7 +634,7 @@ Personalizar el trato con cada jugador.
                                                             <Trophy className="w-3 h-3 text-orange-500" /> Tryman
                                                         </label>
                                                         <select
-                                                            disabled={eventStatus === 'Completado'}
+                                                            disabled={['Completado', 'Cancelado'].includes(eventStatus)}
                                                             value={awards[teamId]?.tryman || ''}
                                                             onChange={(e) => handleSaveAward(teamId, 'tryman', e.target.value)}
                                                             className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 focus:outline-none focus:ring-2 focus:ring-liceo-primary text-sm font-semibold dark:text-white disabled:opacity-50"
@@ -643,19 +664,19 @@ Personalizar el trato con cada jugador.
                                 Sumar Nota o Reporte al Evento
                             </h3>
                             <textarea
-                                disabled={eventStatus === 'Completado'}
+                                disabled={['Completado', 'Cancelado'].includes(eventStatus)}
                                 value={newNoteText}
                                 onChange={(e) => setNewNoteText(e.target.value)}
                                 placeholder="Escribe observaciones sobre el entrenamiento, lesiones detectadas, o rendimiento..."
                                 className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/5 rounded-xl p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-liceo-primary text-sm dark:text-white disabled:opacity-50"
                             ></textarea>
                             <div className="flex justify-between items-center mt-4">
-                                <button disabled={eventStatus === 'Completado'} className="flex items-center gap-2 text-xs font-bold text-liceo-primary dark:text-[#5EE5F8] hover:opacity-80 transition-opacity bg-liceo-primary/10 dark:bg-[#5EE5F8]/10 px-3 py-2 rounded-lg disabled:opacity-50">
+                                <button disabled={['Completado', 'Cancelado'].includes(eventStatus)} className="flex items-center gap-2 text-xs font-bold text-liceo-primary dark:text-[#5EE5F8] hover:opacity-80 transition-opacity bg-liceo-primary/10 dark:bg-[#5EE5F8]/10 px-3 py-2 rounded-lg disabled:opacity-50">
                                     <Mic className="w-4 h-4" /> Activar Dictado IA (Pronto)
                                 </button>
                                 <button
                                     onClick={handleSaveNote}
-                                    disabled={!newNoteText.trim() || isSavingNote || eventStatus === 'Completado'}
+                                    disabled={!newNoteText.trim() || isSavingNote || ['Completado', 'Cancelado'].includes(eventStatus)}
                                     className="bg-liceo-primary dark:bg-liceo-gold text-white dark:text-[#0B1526] font-bold px-6 py-2.5 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                                 >
                                     Guardar Nota
@@ -880,6 +901,27 @@ Personalizar el trato con cada jugador.
                             </button>
                             <button onClick={confirmFinishEvent} className="flex-1 py-3 rounded-xl font-bold bg-black text-amber-500 hover:opacity-90 transition-opacity shadow-lg shadow-black/20">
                                 Sí, Finalizar
+                            </button>
+                        </div>
+        </div>
+                </div>
+            )}
+
+            {/* CANCEL EVENT MODAL */}
+            {isCancellingEvent && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-gradient-to-br from-red-500 to-rose-600 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 text-center text-white">
+                        <div className="w-16 h-16 bg-black/20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
+                            ❌
+                        </div>
+                        <h2 className="text-2xl font-black mb-2">¿Cancelar Evento?</h2>
+                        <p className="text-sm font-bold opacity-90 mb-6">El evento será cancelado, y no contabilizará para la asistencia. Esta acción no se puede deshacer.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setIsCancellingEvent(false)} className="flex-1 py-3 rounded-xl font-bold bg-black/10 hover:bg-black/20 transition-colors">
+                                Volver
+                            </button>
+                            <button onClick={confirmCancelEvent} className="flex-1 py-3 rounded-xl font-bold bg-white text-red-600 hover:opacity-90 transition-opacity shadow-lg shadow-black/20">
+                                Sí, Cancelar
                             </button>
                         </div>
                     </div>

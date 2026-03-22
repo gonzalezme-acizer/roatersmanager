@@ -75,7 +75,7 @@ export default function DashboardClient({ players, events, attendance }: { playe
     // Calculate Attendance
     const presencialidad = useMemo(() => {
         const now = new Date()
-        const pastEvents = events.filter(e => new Date(e.event_date) < now)
+        const pastEvents = events.filter(e => new Date(e.event_date) < now && e.status !== 'Cancelado')
         const pastEventIds = pastEvents.map(e => e.id)
 
         const relevantAttendances = attendance.filter(a => pastEventIds.includes(a.event_id))
