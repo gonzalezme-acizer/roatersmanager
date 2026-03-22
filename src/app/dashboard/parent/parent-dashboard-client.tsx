@@ -23,7 +23,8 @@ import {
 } from 'lucide-react'
 import {
     Radar, RadarChart, PolarGrid, PolarAngleAxis,
-    PolarRadiusAxis, ResponsiveContainer
+    PolarRadiusAxis, ResponsiveContainer,
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip
 } from 'recharts'
 import { useLang } from '@/components/lang-provider'
 import Image from 'next/image'
@@ -77,7 +78,25 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
 
         return { rating: currentScore, trend }
     }, [activeChild])
+    const ovrHistoryData = useMemo(() => {
+        if (!activeChild?.skills || activeChild.skills.length === 0) return []
 
+        const sortedSkills = [...activeChild.skills].sort((a: any, b: any) =>
+            new Date(a.date_logged || 0).getTime() - new Date(b.date_logged || 0).getTime()
+        )
+        
+        const calcScore = (s: any) => {
+            let sum = 0
+            SKILL_KEYS.forEach(k => sum += (s[k] || 1))
+            const max = SKILL_KEYS.length * 5
+            return Math.round((sum / max) * 100)
+        }
+
+        return sortedSkills.map((s: any) => ({
+            date: new Date(s.date_logged).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }),
+            ovr: calcScore(s)
+        }))
+    }, [activeChild])
     const handleFixLinkage = async () => {
         const { fixLinkageAction } = await import('./fix-linkage-action')
         const res = await fixLinkageAction()
@@ -87,13 +106,37 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
 
     // Resumen de asistencia
     const attendanceSummary = useMemo(() => {
-        if (!activeChild?.event_attendance) return { present: 0, absent: 0, late: 0, total: 0 }
-        const att = activeChild.event_attendance.filter((a: any) => a.events?.status !== 'Cancelado')
+        if (!activeChild?.event_attendance) return null
+
+        let matchCount = 0
+        let matchPresent = 0
+        let trainingCount = 0
+        let trainingPresent = 0
+
+        activeChild.event_attendance.forEach((att: any) => {
+            if (att.events?.status === 'Cancelado') return
+            if (!['Presente', 'Ausente', 'Tarde', 'Justificado', 'Titular', 'Suplente'].includes(att.status)) return
+
+            const isMatch = att.events?.event_type === 'Partido'
+            const isPresent = ['Presente', 'Titular', 'Suplente'].includes(att.status)
+            
+            if (isMatch) {
+                matchCount++
+                if (isPresent) matchPresent++
+            } else {
+                trainingCount++
+                if (isPresent) trainingPresent++
+            }
+        })
+
+        const totalCount = matchCount + trainingCount
+        const totalPresent = matchPresent + trainingPresent
+
         return {
-            present: att.filter((a: any) => a.status === 'Presente').length,
-            absent: att.filter((a: any) => a.status === 'Ausente').length,
-            late: att.filter((a: any) => a.status === 'Tarde').length,
-            total: att.length
+            match: matchCount ? Math.round((matchPresent / matchCount) * 100) : 0,
+            training: trainingCount ? Math.round((trainingPresent / trainingCount) * 100) : 0,
+            total: totalCount ? Math.round((totalPresent / totalCount) * 100) : 0,
+            matchPresent, matchCount, trainingPresent, trainingCount, totalPresent, totalCount
         }
     }, [activeChild])
 
@@ -265,36 +308,32 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
                         </div>
 
                         {/* Stats & Radar Group */}
-                        {['Admin', 'Manager', 'Staff'].includes(profile?.role) ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-                                {/* Radar Chart */}
+                                {/* Line Chart (OVR Evolution) */}
                                 <div className="bg-white dark:bg-[#111f38] rounded-[2.5rem] p-8 border border-gray-200 dark:border-white/5 shadow-xl">
                                     <div className="flex items-center justify-between mb-8">
                                         <div className="space-y-1">
-                                            <h3 className="font-black text-liceo-primary dark:text-liceo-gold uppercase text-xs tracking-widest">Desempeño Técnico</h3>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Evaluación de Skills</p>
+                                            <h3 className="font-black text-liceo-primary dark:text-liceo-gold uppercase text-xs tracking-widest">Evolución General</h3>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">OVR a lo largo del tiempo</p>
                                         </div>
                                         <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center">
                                             <Activity className="w-5 h-5 text-liceo-gold" />
                                         </div>
                                     </div>
-                                    <div className="h-[300px] w-full">
-                                        {skillData.length > 0 ? (
+                                    <div className="h-[250px] w-full">
+                                        {ovrHistoryData.length > 0 ? (
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillData}>
-                                                    <PolarGrid stroke="#94a3b8" strokeOpacity={0.2} />
-                                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 9, fontWeight: 900 }} />
-                                                    <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fill: '#94a3b8', fontSize: 8 }} axisLine={false} />
-                                                    <Radar
-                                                        name={activeChild.first_name}
-                                                        dataKey="A"
-                                                        stroke="#C5A059"
-                                                        fill="#C5A059"
-                                                        fillOpacity={0.4}
-                                                        strokeWidth={2}
+                                                <LineChart data={ovrHistoryData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={false} />
+                                                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} tickLine={false} axisLine={false} dy={10} />
+                                                    <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} tickLine={false} axisLine={false} dx={-10} />
+                                                    <RechartsTooltip 
+                                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', background: 'rgba(255,255,255,0.95)', fontWeight: 'bold' }}
+                                                        itemStyle={{ color: '#C5A059' }}
                                                     />
-                                                </RadarChart>
+                                                    <Line type="monotone" dataKey="ovr" name="OVR Global" stroke="#C5A059" strokeWidth={4} dot={{ r: 4, fill: '#C5A059', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                                                </LineChart>
                                             </ResponsiveContainer>
                                         ) : (
                                             <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
@@ -319,70 +358,62 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
                                         </div>
                                     </div>
 
-                                    <div className="space-y-8">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-5xl font-black text-liceo-primary dark:text-white leading-none">
-                                                    {attendanceSummary.total > 0
-                                                        ? Math.round((attendanceSummary.present / attendanceSummary.total) * 100)
-                                                        : 0}<span className="text-2xl text-liceo-gold">%</span>
+                                    {attendanceSummary ? (
+                                        <div className="space-y-6">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div>
+                                                    <p className="text-5xl font-black text-liceo-primary dark:text-white leading-none">
+                                                        {attendanceSummary.total}<span className="text-2xl text-liceo-gold">%</span>
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-[10px] font-black py-1.5 px-3 bg-liceo-primary/10 text-liceo-primary dark:bg-[#5EE5F8]/10 dark:text-[#5EE5F8] rounded-lg uppercase tracking-widest">General</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                {/* Entrenamientos */}
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                                        <span className="text-emerald-500 flex items-center gap-1.5"><Activity className="w-3 h-3" /> Entrenamientos</span>
+                                                        <span className="text-emerald-600 dark:text-emerald-400 font-black">{attendanceSummary.training}% ({attendanceSummary.trainingPresent}/{attendanceSummary.trainingCount})</span>
+                                                    </div>
+                                                    <div className="h-3 bg-gray-50 dark:bg-white/5 rounded-full overflow-hidden border border-gray-100 dark:border-white/5">
+                                                        <div
+                                                            className="h-full bg-emerald-500 rounded-full transition-all duration-1000 shadow-sm"
+                                                            style={{ width: `${attendanceSummary.training}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Partidos */}
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                                        <span className="text-liceo-primary dark:text-[#5EE5F8] flex items-center gap-1.5"><Trophy className="w-3 h-3" /> Partidos</span>
+                                                        <span className="text-liceo-primary dark:text-[#5EE5F8] font-black">{attendanceSummary.match}% ({attendanceSummary.matchPresent}/{attendanceSummary.matchCount})</span>
+                                                    </div>
+                                                    <div className="h-3 bg-gray-50 dark:bg-white/5 rounded-full overflow-hidden border border-gray-100 dark:border-white/5">
+                                                        <div
+                                                            className="h-full bg-liceo-primary dark:bg-[#5EE5F8] rounded-full transition-all duration-1000 shadow-sm"
+                                                            style={{ width: `${attendanceSummary.match}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4 mt-2 border-t border-gray-100 dark:border-white/5">
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight leading-relaxed">
+                                                    Basado en los últimos {attendanceSummary.totalCount} eventos (con convocatorias).
                                                 </p>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="text-[10px] font-black py-1.5 px-3 bg-green-500/10 text-green-500 rounded-lg uppercase tracking-widest">Consistente</span>
-                                            </div>
                                         </div>
-
-                                        <div className="space-y-4">
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                                    <span className="text-green-500 flex items-center gap-1.5"><CheckCircle2 className="w-3 h-3" /> Presente</span>
-                                                    <span className="text-gray-400">{attendanceSummary.present}</span>
-                                                </div>
-                                                <div className="h-2.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-green-500 rounded-full transition-all duration-1000"
-                                                        style={{ width: `${attendanceSummary.total > 0 ? (attendanceSummary.present / attendanceSummary.total) * 100 : 0}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                                    <span className="text-red-500 flex items-center gap-1.5"><XCircle className="w-3 h-3" /> Ausente</span>
-                                                    <span className="text-gray-400">{attendanceSummary.absent}</span>
-                                                </div>
-                                                <div className="h-2.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-red-500 rounded-full transition-all duration-1000"
-                                                        style={{ width: `${attendanceSummary.total > 0 ? (attendanceSummary.absent / attendanceSummary.total) * 100 : 0}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
+                                    ) : (
+                                        <div className="text-center py-6">
+                                            <p className="text-xs text-gray-500 font-bold uppercase">Sin historial de asistencias</p>
                                         </div>
-
-                                        <div className="pt-2">
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight leading-relaxed">
-                                                Basado en los últimos {attendanceSummary.total} eventos registrados por el cuerpo técnico.
-                                            </p>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] p-10 border border-gray-100 dark:border-white/5 text-center space-y-4 shadow-inner">
-                                <div className="w-16 h-16 bg-gray-100 dark:bg-white/10 rounded-full flex items-center justify-center mx-auto text-gray-400">
-                                    <Info className="w-8 h-8 opacity-50" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-black dark:text-white uppercase tracking-tight">Seguimiento de Evolución</h3>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto mt-1 font-medium italic">
-                                        Las métricas de Radar y Analítica de Asistencia son para uso interno del Staff.
-                                        En esta pantalla podés ver la información básica y comunicados de {activeChild.first_name}.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
+                        </div>
 
                     </div>
 

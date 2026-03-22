@@ -42,10 +42,10 @@ export default async function ParentDashboardPage() {
                 skills (
                     *
                 ),
-                event_attendance (
-                    *,
-                    events:event_id(status)
-                )
+                    event_attendance (
+                        *,
+                        events:event_id(status, event_type)
+                    )
             `)
             .in('id', childIds)
 
