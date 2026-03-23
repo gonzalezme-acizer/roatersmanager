@@ -32,6 +32,16 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
     // Awards State
     const [awards, setAwards] = useState<any>(event.match_awards || {})
 
+    // Edit Event Info UI
+    const [isEditingEventInfo, setIsEditingEventInfo] = useState(false)
+    const [editEventData, setEditEventData] = useState({
+        event_date: event.event_date,
+        event_time: event.event_time,
+        call_time: event.call_time || '',
+        location: event.location || ''
+    })
+    const [isSavingEventInfo, setIsSavingEventInfo] = useState(false)
+
     // UI Loading states
     const [loadingSlot, setLoadingSlot] = useState(false)
 
@@ -198,6 +208,28 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
         }
     }
 
+    const handleSaveEventInfo = async () => {
+        setIsSavingEventInfo(true)
+        const { error } = await supabase.from('events').update({
+            event_date: editEventData.event_date,
+            event_time: editEventData.event_time,
+            call_time: editEventData.call_time,
+            location: editEventData.location
+        }).eq('id', event.id)
+
+        if (!error) {
+            event.event_date = editEventData.event_date
+            event.event_time = editEventData.event_time
+            event.call_time = editEventData.call_time
+            event.location = editEventData.location
+            setIsEditingEventInfo(false)
+            showSuccessToast('Actualizado', 'La información del evento ha sido modificada.')
+        } else {
+            showErrorToast('Error', 'No se pudo actualizar el evento.')
+        }
+        setIsSavingEventInfo(false)
+    }
+
     const handleCancelEvent = () => {
         setIsCancellingEvent(true)
     }
@@ -342,10 +374,25 @@ Personalizar el trato con cada jugador.
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest ${eventStatus === 'Planeado' ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'}`}>
                                 {eventStatus}
                             </span>
-                            <span suppressHydrationWarning className="text-xs text-gray-500 dark:text-cyan-500/60 font-medium border-l border-gray-200 dark:border-white/10 pl-2">
-                                {new Date(event.event_date + 'T00:00:00').toLocaleDateString('es-AR')}
-                                {event.event_type === 'Partido' ? ` | Citación: ${event.call_time?.slice(0, 5) || '--:--'} - KO: ${event.event_time.slice(0, 5)}hs` : ` a las ${event.event_time.slice(0, 5)}hs`}
-                            </span>
+                            {isEditingEventInfo ? (
+                                <div className="flex items-center gap-1 border-l border-gray-200 dark:border-white/10 pl-2">
+                                    <input type="date" value={editEventData.event_date} onChange={e => setEditEventData({...editEventData, event_date: e.target.value})} className="text-[10px] md:text-xs px-1.5 py-1 rounded bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 focus:outline-none dark:text-white" />
+                                    {event.event_type === 'Partido' && (
+                                        <input type="time" title="Citación" value={editEventData.call_time} onChange={e => setEditEventData({...editEventData, call_time: e.target.value})} className="text-[10px] md:text-xs px-1.5 py-1 rounded bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 focus:outline-none dark:text-white" />
+                                    )}
+                                    <input type="time" title="Hora" value={editEventData.event_time} onChange={e => setEditEventData({...editEventData, event_time: e.target.value})} className="text-[10px] md:text-xs px-1.5 py-1 rounded bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 focus:outline-none dark:text-white" />
+                                    <button onClick={handleSaveEventInfo} disabled={isSavingEventInfo} className="text-emerald-500 hover:text-emerald-600 ml-1 p-1 bg-emerald-50 dark:bg-emerald-500/10 rounded"><Save className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => setIsEditingEventInfo(false)} className="text-gray-400 hover:text-red-500 p-1 bg-gray-50 dark:bg-white/5 rounded"><X className="w-3.5 h-3.5" /></button>
+                                </div>
+                            ) : (
+                                <span suppressHydrationWarning className="text-xs text-gray-500 dark:text-cyan-500/60 font-medium border-l border-gray-200 dark:border-white/10 pl-2 flex items-center gap-2 group cursor-pointer" onClick={() => { if(eventStatus !== 'Completado' && eventStatus !== 'Cancelado') setIsEditingEventInfo(true) }}>
+                                    {new Date(event.event_date + 'T00:00:00').toLocaleDateString('es-AR')}
+                                    {event.event_type === 'Partido' ? ` | Citación: ${event.call_time?.slice(0, 5) || '--:--'} - KO: ${event.event_time.slice(0, 5)}hs` : ` a las ${event.event_time.slice(0, 5)}hs`}
+                                    {eventStatus !== 'Completado' && eventStatus !== 'Cancelado' && (
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-liceo-primary" title="Modificar Día/Hora"><Settings className="w-3.5 h-3.5" /></div>
+                                    )}
+                                </span>
+                            )}
                         </div>
                         <h1 className="text-2xl font-black uppercase tracking-widest text-liceo-primary dark:text-[#5EE5F8]">{event.title}</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1 font-medium max-w-lg">
