@@ -210,21 +210,30 @@ export default function EventDetailClient({ event, drills, initialSlots, initial
 
     const handleSaveEventInfo = async () => {
         setIsSavingEventInfo(true)
-        const { error } = await supabase.from('events').update({
+        
+        const updateData: any = {
             event_date: editEventData.event_date,
             event_time: editEventData.event_time,
-            call_time: editEventData.call_time,
             location: editEventData.location
-        }).eq('id', event.id)
+        }
+
+        if (event.event_type === 'Partido') {
+            updateData.call_time = editEventData.call_time || null
+        } else {
+            updateData.call_time = null
+        }
+
+        const { error } = await supabase.from('events').update(updateData).eq('id', event.id)
 
         if (!error) {
             event.event_date = editEventData.event_date
             event.event_time = editEventData.event_time
-            event.call_time = editEventData.call_time
+            if (event.event_type === 'Partido') event.call_time = editEventData.call_time || null
             event.location = editEventData.location
             setIsEditingEventInfo(false)
             showSuccessToast('Actualizado', 'La información del evento ha sido modificada.')
         } else {
+            console.error(error)
             showErrorToast('Error', 'No se pudo actualizar el evento.')
         }
         setIsSavingEventInfo(false)
