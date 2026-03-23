@@ -81,12 +81,20 @@ export default function BillboardClient({ initialPosts, user }: any) {
                     image_url,
                     author_id: user.id
                 }])
-                .select('*, profiles:author_id(full_name, image_url)')
+                .select('*')
                 .single()
 
             if (error) throw error
 
-            setPosts([data, ...posts])
+            const newPost = {
+                ...data,
+                profiles: {
+                    full_name: user?.full_name,
+                    image_url: user?.image_url
+                }
+            }
+
+            setPosts([newPost, ...posts])
             setIsAdding(false)
             resetForm()
             showSuccessToast('¡Publicado!', 'El mensaje se ha subido a la cartelera.')

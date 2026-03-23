@@ -20,10 +20,10 @@ export default async function BillboardPage() {
         .eq('id', user.id)
         .single()
 
-    // Fetch posts with author info
+    // Fetch posts
     let query = supabase
         .from('billboard_posts')
-        .select('*, profiles:author_id(full_name, image_url)')
+        .select('*')
 
     const isStaffUser = isStaff(profile?.role)
 
@@ -34,7 +34,24 @@ export default async function BillboardPage() {
     }
     // Admin/Manager continues with full query
 
-    const { data: posts } = await query.order('created_at', { ascending: false })
+    const { data: postsData } = await query.order('created_at', { ascending: false })
+    
+    // Manually join profiles because FK might be missing
+    let posts = postsData || []
+    if (posts.length > 0) {
+        const authorIds = Array.from(new Set(posts.map((p: any) => p.author_id).filter(Boolean)))
+        if (authorIds.length > 0) {
+            const { data: profiles } = await supabase.from('profiles').select('id, full_name, image_url').in('id', authorIds)
+            const profileMap = (profiles || []).reduce((acc: any, p: any) => {
+                acc[p.id] = p
+                return acc
+            }, {})
+            posts = posts.map((p: any) => ({
+                ...p,
+                profiles: profileMap[p.author_id] || null
+            }))
+        }
+    }
 
     return (
         <BillboardClient
