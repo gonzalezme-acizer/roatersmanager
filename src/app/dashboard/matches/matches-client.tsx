@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Database, CalendarDays, BookOpen, AlertCircle, X, Loader2, ArrowRight, Shield, Clock, ExternalLink, Edit2, Trash2, MapPin, Globe, Trophy, LayoutGrid, List, MessageCircle } from 'lucide-react'
+import { Plus, Database, CalendarDays, BookOpen, AlertCircle, X, Loader2, ArrowRight, Shield, Clock, ExternalLink, Edit2, Trash2, MapPin, Globe, Trophy, LayoutGrid, List, MessageCircle, UserCircle } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { showSuccessToast, showErrorToast } from '@/utils/toast'
 import { useLang } from '@/components/lang-provider'
@@ -25,7 +25,7 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
 
     // Form states
     const [newEvent, setNewEvent] = useState({ title: '', event_date: '', event_time: '', call_time: '', location: '', objectives: '', match_opponents: [] as string[], match_teams: [] as string[], match_team_coaches: {} as Record<string, string[]>, is_home: false })
-    const [newClub, setNewClub] = useState({ name: '', website_url: '', address: '', logo_url: '' })
+    const [newClub, setNewClub] = useState({ name: '', website_url: '', address: '', logo_url: '', contacts: [] as { name: string, last_name: string, division: string, phone: string | number }[] })
 
     if (needsSetup) {
         return (
@@ -77,7 +77,8 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
             name: club.name,
             website_url: club.website_url || '',
             address: club.address || '',
-            logo_url: club.logo_url || ''
+            logo_url: club.logo_url || '',
+            contacts: club.contacts || []
         })
         setEditingClubId(club.id)
         setIsCreatingClub(true)
@@ -86,7 +87,7 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
     const closeClubModal = () => {
         setIsCreatingClub(false)
         setEditingClubId(null)
-        setNewClub({ name: '', website_url: '', address: '', logo_url: '' })
+        setNewClub({ name: '', website_url: '', address: '', logo_url: '', contacts: [] })
     }
 
     const openEditEvent = (ev: any) => {
@@ -168,6 +169,27 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
             match_opponents: prev.match_opponents.includes(clubId)
                 ? prev.match_opponents.filter(id => id !== clubId)
                 : [...prev.match_opponents, clubId]
+        }))
+    }
+
+    const addClubContact = () => {
+        setNewClub(prev => ({
+            ...prev,
+            contacts: [...prev.contacts, { name: '', last_name: '', division: '', phone: '' }]
+        }))
+    }
+
+    const removeClubContact = (index: number) => {
+        setNewClub(prev => ({
+            ...prev,
+            contacts: prev.contacts.filter((_, i) => i !== index)
+        }))
+    }
+
+    const updateClubContact = (index: number, field: string, value: string) => {
+        setNewClub(prev => ({
+            ...prev,
+            contacts: prev.contacts.map((c, i) => i === index ? { ...c, [field]: value } : c)
         }))
     }
 
@@ -413,6 +435,45 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                                         </div>
                                     </div>
 
+                                    <div className="pt-2 border-t border-gray-100 dark:border-white/5">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-blue-500">Contactos del Club</label>
+                                            <button type="button" onClick={addClubContact} className="text-xs font-bold text-liceo-primary dark:text-[#5EE5F8] flex items-center gap-1 hover:underline">
+                                                <Plus className="w-3 h-3" /> Agregar Contacto
+                                            </button>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {newClub.contacts.map((contact, idx) => (
+                                                <div key={`contact-${idx}`} className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-200 dark:border-white/10 relative group/contact">
+                                                    <button type="button" onClick={() => removeClubContact(idx)} className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover/contact:opacity-100 transition-opacity">
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label className="text-[9px] font-bold uppercase text-gray-400">Nombre</label>
+                                                            <input required value={contact.name} onChange={e => updateClubContact(idx, 'name', e.target.value)} placeholder="Nombre" className="w-full mt-0.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111f38] text-xs font-bold dark:text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-bold uppercase text-gray-400">Apellido</label>
+                                                            <input required value={contact.last_name} onChange={e => updateClubContact(idx, 'last_name', e.target.value)} placeholder="Apellido" className="w-full mt-0.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111f38] text-xs font-bold dark:text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-bold uppercase text-gray-400">División</label>
+                                                            <input value={contact.division} onChange={e => updateClubContact(idx, 'division', e.target.value)} placeholder="Ej. M15 / Referente" className="w-full mt-0.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111f38] text-xs font-bold dark:text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[9px] font-bold uppercase text-gray-400">Teléfono</label>
+                                                            <input value={contact.phone} onChange={e => updateClubContact(idx, 'phone', e.target.value)} placeholder="Ej. 11 1234 5678" className="w-full mt-0.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111f38] text-xs font-bold dark:text-white" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {newClub.contacts.length === 0 && (
+                                                <p className="text-[10px] text-gray-500 italic text-center py-2">No hay contactos agregados.</p>
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <button type="submit" disabled={loading} className="w-full mt-6 py-3 rounded-xl font-bold bg-liceo-primary dark:bg-liceo-gold text-white dark:text-[#0B1526] hover:opacity-90 flex items-center justify-center gap-2">
                                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : editingClubId ? 'Guardar Cambios' : 'Agendar Club'}
                                     </button>
@@ -577,10 +638,30 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                                                 </button>
                                             </div>
                                             <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{club.name}</h3>
-                                            <div className="space-y-1 mb-6">
+                                            <div className="space-y-1 mb-4">
                                                 {club.address && <p className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2"><MapPin className="w-4 h-4" /> {club.address}</p>}
-                                                {club.website_url && <a href={club.website_url} target="_blank" className="text-sm font-medium text-blue-500 hover:underline flex items-center gap-2"><Globe className="w-4 h-4" /> Sitio Web</a>}
+                                                {club.website_url && <a href={club.website_url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-500 hover:underline flex items-center gap-2"><Globe className="w-4 h-4" /> Sitio Web</a>}
                                             </div>
+
+                                            {club.contacts && club.contacts.length > 0 && (
+                                                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 space-y-3">
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Contactos</p>
+                                                    {club.contacts.map((c: any, i: number) => (
+                                                        <div key={i} className="flex flex-col bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                                            <div className="flex justify-between items-start">
+                                                                <p className="text-sm font-black text-gray-900 dark:text-white uppercase leading-tight">{c.name} {c.last_name}</p>
+                                                                {c.division && <span className="text-[9px] bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-2 py-0.5 rounded-full font-bold">{c.division}</span>}
+                                                            </div>
+                                                            {c.phone && (
+                                                                <a href={`https://wa.me/${c.phone.toString().replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="mt-2 text-xs font-bold text-green-500 hover:text-green-600 flex items-center gap-1.5 transition-colors">
+                                                                    <MessageCircle className="w-3.5 h-3.5" />
+                                                                    {c.phone}
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (
@@ -597,7 +678,16 @@ export default function MatchesClient({ initialEvents, initialClubs, coaches, te
                                                 <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1 group-hover:text-liceo-primary transition-colors">{club.name}</h3>
                                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                                                     {club.address && <p className="text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {club.address}</p>}
-                                                    {club.website_url && <a href={club.website_url} target="_blank" className="text-xs font-medium text-blue-500 hover:underline flex items-center gap-1.5"><Globe className="w-3 h-3" /> Sitio Web</a>}
+                                                    {club.website_url && <a href={club.website_url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-blue-500 hover:underline flex items-center gap-1.5"><Globe className="w-3 h-3" /> Sitio Web</a>}
+                                                    {club.contacts && club.contacts.length > 0 && (
+                                                        <div className="flex gap-2">
+                                                            {club.contacts.map((c: any, i: number) => (
+                                                                <span key={i} title={`${c.name} ${c.last_name} (${c.division})`} className="text-[10px] font-bold text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                                                                    <UserCircle className="w-3 h-3 text-liceo-primary dark:text-[#5EE5F8]" /> {c.name}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
