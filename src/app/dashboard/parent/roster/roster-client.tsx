@@ -179,15 +179,31 @@ export default function ParentRosterClient({ squad }: { squad: SquadPlayer[] }) 
                          <div className="absolute -inset-2 bg-liceo-gold/10 rounded-[2.5rem] blur-2xl opacity-50 -z-10 group-hover:opacity-100 transition-opacity"></div>
                     </div>
 
-                    {/* Pagination Indicator */}
-                    <div className="flex items-center gap-2 pb-10">
-                        {filteredSquad.map((_, idx) => (
-                            <button 
-                                key={idx}
-                                onClick={() => setCurrentIndex(idx)}
-                                className={`h-1.5 rounded-full transition-all duration-300 ${currentIndex === idx ? 'w-10 bg-liceo-gold' : 'w-2 bg-gray-200 dark:bg-white/10 hover:bg-gray-300'}`}
-                            />
-                        ))}
+                    {/* Pagination Indicator / Counter */}
+                    <div className="flex flex-col items-center gap-4 pb-12 w-full px-8">
+                        {filteredSquad.length > 20 ? (
+                            <div className="flex flex-col items-center gap-2">
+                                <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
+                                    Jugador {currentIndex + 1} de {filteredSquad.length}
+                                </span>
+                                <div className="h-1.5 w-64 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-liceo-gold transition-all duration-300"
+                                        style={{ width: `${((currentIndex + 1) / filteredSquad.length) * 100}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-wrap justify-center items-center gap-2 max-w-sm">
+                                {filteredSquad.map((_, idx) => (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => setCurrentIndex(idx)}
+                                        className={`h-1.5 rounded-full transition-all duration-300 ${currentIndex === idx ? 'w-10 bg-liceo-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]' : 'w-2 bg-gray-300 dark:bg-white/10 hover:bg-gray-400'}`}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (

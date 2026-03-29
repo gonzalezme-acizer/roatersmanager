@@ -30,28 +30,10 @@ export default async function ParentRosterPage() {
         )
     }
 
-    // 2. Obtener categorías de los hijos
-    const { data: children } = await supabase
-        .from('players')
-        .select('category')
-        .in('id', childIds)
-
-    const categories = Array.from(new Set(children?.map((c: { category: string | null }) => c.category).filter(Boolean)))
-
-    if (categories.length === 0) {
-        return (
-            <div className="p-10 text-center">
-                <h1 className="text-2xl font-black uppercase text-gray-500">Categoría no definida</h1>
-                <p className="mt-2 text-gray-400">Tus hijos no tienen una categoría asignada.</p>
-            </div>
-        )
-    }
-
-    // 3. Obtener todos los jugadores de esas categorías que NO estén suspendidos
+    // 3. Obtener todos los jugadores de la base (asumiendo que la app es de M13) que NO estén suspendidos
     const { data: squad } = await supabase
         .from('players')
         .select('id, first_name, last_name, nickname, position, birth_date, image_url, category, status')
-        .in('category', categories)
         .neq('status', 'Suspendido')
         .order('first_name', { ascending: true })
 
