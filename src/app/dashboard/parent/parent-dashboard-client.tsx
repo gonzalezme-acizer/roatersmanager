@@ -506,6 +506,19 @@ export default function ParentDashboardClient({ profile, childrenData, billboard
                                 <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-liceo-gold group-hover:translate-x-1 transition-all" />
                             </Link>
 
+                            <Link href="/dashboard/parent/roster" className="w-full flex items-center justify-between p-5 bg-white dark:bg-[#111f38] rounded-2xl border border-gray-100 dark:border-white/5 hover:border-liceo-gold/30 hover:scale-[1.02] transition-all group shadow-sm">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-liceo-primary dark:text-liceo-gold group-hover:bg-liceo-gold group-hover:text-[#0B1526] transition-all">
+                                        <Users className="w-6 h-6" />
+                                    </div>
+                                    <div className="text-left space-y-0.5">
+                                        <p className="text-sm font-black dark:text-white uppercase tracking-tight">Plantel</p>
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Compañeros de Equipo</p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-liceo-gold group-hover:translate-x-1 transition-all" />
+                            </Link>
+
                             <Link href="/dashboard/parent/medical-record" className="w-full flex items-center justify-between p-5 bg-white dark:bg-[#111f38] rounded-2xl border border-gray-100 dark:border-white/5 hover:border-liceo-gold/30 hover:scale-[1.02] transition-all group shadow-sm">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-liceo-primary dark:text-liceo-gold group-hover:bg-liceo-gold group-hover:text-[#0B1526] transition-all">
